@@ -11,24 +11,34 @@ class WarehouseInfolist
     public static function configure(Schema $schema): Schema
     {
         return $schema
+            ->columns(2)
             ->components([
                 TextEntry::make('branch.name')
-                    ->label('Branch')
+                    ->label('الفرع')
                     ->placeholder('-'),
-                TextEntry::make('code'),
-                TextEntry::make('name'),
+
+                TextEntry::make('code')
+                    ->label('كود المخزن'),
+
+                TextEntry::make('name')
+                    ->label('اسم المخزن'),
+
                 TextEntry::make('account_code')
+                    ->label('الحساب في الشجرة')
                     ->placeholder('-'),
+
+                IconEntry::make('is_active')
+                    ->label('نشط')
+                    ->boolean(),
+
                 TextEntry::make('notes')
+                    ->label('ملاحظات')
                     ->placeholder('-')
                     ->columnSpanFull(),
-                IconEntry::make('is_active')
-                    ->boolean(),
+
                 TextEntry::make('created_at')
-                    ->dateTime()
-                    ->placeholder('-'),
-                TextEntry::make('updated_at')
-                    ->dateTime()
+                    ->label('تاريخ الإضافة')
+                    ->dateTime('Y-m-d H:i')
                     ->placeholder('-'),
             ]);
     }

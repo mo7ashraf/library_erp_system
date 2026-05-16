@@ -24,6 +24,31 @@ class ItemSubgroupResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    public static function getModelLabel(): string
+    {
+        return 'مجموعة فرعية';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'مجموعات الأصناف الفرعية';
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return 'مجموعات الأصناف الفرعية';
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return 'التعريفات الرئيسية';
+    }
+
+    public static function getNavigationSort(): ?int
+    {
+        return 4;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return ItemSubgroupForm::configure($schema);

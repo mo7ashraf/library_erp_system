@@ -13,18 +13,39 @@ class WarehouseForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
+            ->columns(2)
             ->components([
                 Select::make('branch_id')
-                    ->relationship('branch', 'name'),
+                    ->label('الفرع')
+                    ->relationship('branch', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
+
                 TextInput::make('code')
-                    ->required(),
+                    ->label('كود المخزن')
+                    ->required()
+                    ->maxLength(50)
+                    ->unique(ignoreRecord: true),
+
                 TextInput::make('name')
-                    ->required(),
-                TextInput::make('account_code'),
-                Textarea::make('notes')
-                    ->columnSpanFull(),
+                    ->label('اسم المخزن')
+                    ->required()
+                    ->maxLength(255)
+                    ->autofocus(),
+
+                TextInput::make('account_code')
+                    ->label('الحساب في الشجرة')
+                    ->maxLength(255),
+
                 Toggle::make('is_active')
-                    ->required(),
+                    ->label('نشط')
+                    ->default(true),
+
+                Textarea::make('notes')
+                    ->label('ملاحظات')
+                    ->rows(3)
+                    ->columnSpanFull(),
             ]);
     }
 }

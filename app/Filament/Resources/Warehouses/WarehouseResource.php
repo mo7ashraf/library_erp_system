@@ -24,6 +24,31 @@ class WarehouseResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    public static function getModelLabel(): string
+    {
+        return 'مخزن';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'المخازن';
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return 'المخازن';
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return 'التعريفات الرئيسية';
+    }
+
+    public static function getNavigationSort(): ?int
+    {
+        return 5;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return WarehouseForm::configure($schema);

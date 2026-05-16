@@ -11,21 +11,29 @@ class ItemSubgroupInfolist
     public static function configure(Schema $schema): Schema
     {
         return $schema
+            ->columns(2)
             ->components([
-                TextEntry::make('item_group_id')
-                    ->numeric(),
-                TextEntry::make('code'),
-                TextEntry::make('name'),
+                TextEntry::make('group.name')
+                    ->label('المجموعة الرئيسية'),
+
+                TextEntry::make('code')
+                    ->label('كود المجموعة الفرعية'),
+
+                TextEntry::make('name')
+                    ->label('اسم المجموعة الفرعية'),
+
+                IconEntry::make('is_active')
+                    ->label('نشط')
+                    ->boolean(),
+
                 TextEntry::make('notes')
+                    ->label('ملاحظات')
                     ->placeholder('-')
                     ->columnSpanFull(),
-                IconEntry::make('is_active')
-                    ->boolean(),
+
                 TextEntry::make('created_at')
-                    ->dateTime()
-                    ->placeholder('-'),
-                TextEntry::make('updated_at')
-                    ->dateTime()
+                    ->label('تاريخ الإضافة')
+                    ->dateTime('Y-m-d H:i')
                     ->placeholder('-'),
             ]);
     }

@@ -8,6 +8,7 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
 class WarehousesTable
@@ -15,36 +16,53 @@ class WarehousesTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->defaultSort('id', 'desc')
             ->columns([
                 TextColumn::make('branch.name')
-                    ->searchable(),
+                    ->label('الفرع')
+                    ->searchable()
+                    ->sortable(),
+
                 TextColumn::make('code')
-                    ->searchable(),
+                    ->label('كود المخزن')
+                    ->searchable()
+                    ->sortable(),
+
                 TextColumn::make('name')
-                    ->searchable(),
+                    ->label('اسم المخزن')
+                    ->searchable()
+                    ->sortable(),
+
                 TextColumn::make('account_code')
-                    ->searchable(),
+                    ->label('الحساب في الشجرة')
+                    ->searchable()
+                    ->toggleable(),
+
                 IconColumn::make('is_active')
-                    ->boolean(),
+                    ->label('نشط')
+                    ->boolean()
+                    ->sortable(),
+
                 TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
+                    ->label('تاريخ الإضافة')
+                    ->dateTime('Y-m-d H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                TernaryFilter::make('is_active')
+                    ->label('الحالة')
+                    ->placeholder('الكل')
+                    ->trueLabel('نشط فقط')
+                    ->falseLabel('غير نشط فقط'),
             ])
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
+                ViewAction::make()->label('عرض'),
+                EditAction::make()->label('تعديل'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()->label('حذف المحدد'),
                 ]),
             ]);
     }
