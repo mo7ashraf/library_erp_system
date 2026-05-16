@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <title>فاتورة مبيعات - {{ $invoice->invoice_number }}</title>
-
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         @page {
-            size: A4;
+            size: A4 portrait;
             margin: 12mm;
         }
 
@@ -14,154 +16,19 @@
             box-sizing: border-box;
         }
 
+        html,
         body {
-            font-family: "Cairo", "Tahoma", sans-serif;
-            direction: rtl;
-            color: #111827;
-            background: #f3f4f6;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            direction: rtl;
+            font-family: "Cairo", "Tahoma", sans-serif;
+            color: #111827;
+            background: #e5e7eb;
             font-size: 13px;
         }
 
-        .receipt {
-            width: 210mm;
-            max-width: 100%;
-            margin: 0 auto;
-            background: #ffffff;
-            padding: 18px;
-            border: 1px solid #e5e7eb;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            border-bottom: 2px solid #111827;
-            padding-bottom: 12px;
-            margin-bottom: 16px;
-        }
-
-        .brand-title {
-            font-size: 22px;
-            font-weight: 800;
-            margin: 0;
-        }
-
-        .brand-subtitle {
-            margin-top: 4px;
-            color: #6b7280;
-        }
-
-        .invoice-title {
-            text-align: left;
-        }
-
-        .invoice-title h2 {
-            margin: 0;
-            font-size: 20px;
-        }
-
-        .invoice-title .number {
-            margin-top: 6px;
-            font-weight: 700;
-        }
-
-        .meta-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px 20px;
-            margin-bottom: 16px;
-        }
-
-        .meta-box {
-            border: 1px solid #e5e7eb;
-            padding: 10px;
-            border-radius: 8px;
-        }
-
-        .meta-box h3 {
-            margin: 0 0 8px;
-            font-size: 14px;
-            border-bottom: 1px solid #e5e7eb;
-            padding-bottom: 6px;
-        }
-
-        .line {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            margin: 5px 0;
-        }
-
-        .label {
-            color: #6b7280;
-            min-width: 110px;
-        }
-
-        .value {
-            font-weight: 600;
-            text-align: left;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 12px;
-        }
-
-        th, td {
-            border: 1px solid #d1d5db;
-            padding: 8px;
-            vertical-align: top;
-        }
-
-        th {
-            background: #f9fafb;
-            font-weight: 800;
-            text-align: right;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        .text-left {
-            text-align: left;
-        }
-
-        .totals {
-            margin-top: 16px;
-            width: 45%;
-            margin-right: auto;
-        }
-
-        .totals .row {
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px solid #e5e7eb;
-            padding: 8px 0;
-        }
-
-        .totals .grand {
-            font-size: 16px;
-            font-weight: 900;
-            border-bottom: 2px solid #111827;
-        }
-
-        .footer {
-            margin-top: 28px;
-            display: flex;
-            justify-content: space-between;
-            gap: 20px;
-        }
-
-        .signature {
-            width: 45%;
-            border-top: 1px solid #111827;
-            padding-top: 8px;
-            text-align: center;
-            color: #374151;
+        body {
+            padding: 20px;
         }
 
         .print-actions {
@@ -176,31 +43,196 @@
         .btn {
             border: none;
             background: #111827;
-            color: white;
+            color: #ffffff;
             padding: 9px 16px;
             border-radius: 8px;
             cursor: pointer;
-            font-family: inherit;
+            font-family: "Cairo", "Tahoma", sans-serif;
+            font-weight: 700;
         }
 
         .btn-secondary {
             background: #6b7280;
         }
 
+        .receipt {
+            width: 210mm;
+            min-height: 297mm;
+            max-width: 100%;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 16mm;
+            border: 1px solid #d1d5db;
+            overflow: hidden;
+        }
+
+        .receipt-title {
+            text-align: center;
+            margin-bottom: 18px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #111827;
+        }
+
+        .receipt-title h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 900;
+            line-height: 1.4;
+        }
+
+        .receipt-title .subtitle {
+            margin-top: 4px;
+            font-size: 14px;
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        .top-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .box {
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .box h3 {
+            margin: 0 0 8px;
+            font-size: 14px;
+            font-weight: 800;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 6px;
+        }
+
+        .line {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin: 5px 0;
+        }
+
+        .label {
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        .value {
+            font-weight: 800;
+            text-align: left;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            page-break-inside: auto;
+        }
+
+        thead {
+            display: table-header-group;
+        }
+
+        tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+        }
+
+        th,
+        td {
+            border: 1px solid #d1d5db;
+            padding: 7px;
+            vertical-align: top;
+        }
+
+        th {
+            background: #f3f4f6;
+            font-weight: 900;
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-left {
+            text-align: left;
+        }
+
+        .totals {
+            margin-top: 16px;
+            width: 48%;
+            margin-right: auto;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 8px 12px;
+        }
+
+        .totals .row {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 7px 0;
+        }
+
+        .totals .row:last-child {
+            border-bottom: none;
+        }
+
+        .totals .grand {
+            font-size: 16px;
+            font-weight: 900;
+            color: #111827;
+        }
+
+        .notes {
+            margin-top: 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .footer {
+            margin-top: 32px;
+            display: flex;
+            justify-content: space-between;
+            gap: 24px;
+        }
+
+        .signature {
+            width: 45%;
+            border-top: 1px solid #111827;
+            padding-top: 8px;
+            text-align: center;
+            font-weight: 700;
+        }
+
         @media print {
+            html,
             body {
                 background: #ffffff;
-                padding: 0;
+                width: 210mm;
+                min-height: 297mm;
             }
 
-            .receipt {
-                width: 100%;
-                border: none;
+            body {
                 padding: 0;
             }
 
             .print-actions {
                 display: none;
+            }
+
+            .receipt {
+                width: 100%;
+                min-height: auto;
+                margin: 0;
+                padding: 0;
+                border: none;
+                box-shadow: none;
             }
         }
     </style>
@@ -221,65 +253,72 @@
             </div>
         </div>
 
-        <div class="invoice-title">
+        <div class="receipt-title">
             <h2>فاتورة مبيعات</h2>
             <div class="number">رقم: {{ $invoice->invoice_number }}</div>
             <div>التاريخ: {{ optional($invoice->invoice_date)->format('Y-m-d') }}</div>
         </div>
     </div>
+<div class="top-info">
+    <div class="box">
+        <h3>بيانات الفاتورة</h3>
 
-    <div class="meta-grid">
-        <div class="meta-box">
-            <h3>بيانات العميل</h3>
-
-            <div class="line">
-                <span class="label">اسم العميل</span>
-                <span class="value">{{ $invoice->customer?->name ?? '-' }}</span>
-            </div>
-
-            <div class="line">
-                <span class="label">كود العميل</span>
-                <span class="value">{{ $invoice->customer?->code ?? '-' }}</span>
-            </div>
-
-            <div class="line">
-                <span class="label">الموبايل</span>
-                <span class="value">{{ $invoice->customer?->mobile ?? $invoice->customer?->phone ?? '-' }}</span>
-            </div>
+        <div class="line">
+            <span class="label">رقم الفاتورة</span>
+            <span class="value">{{ $invoice->invoice_number }}</span>
         </div>
 
-        <div class="meta-box">
-            <h3>بيانات الفاتورة</h3>
+        <div class="line">
+            <span class="label">تاريخ الفاتورة</span>
+            <span class="value">{{ optional($invoice->invoice_date)->format('Y-m-d') }}</span>
+        </div>
 
-            <div class="line">
-                <span class="label">المخزن</span>
-                <span class="value">{{ $invoice->warehouse?->name ?? '-' }}</span>
-            </div>
+        <div class="line">
+            <span class="label">طريقة السداد</span>
+            <span class="value">
+                @switch($invoice->payment_type)
+                    @case('cash') نقدي @break
+                    @case('credit') آجل @break
+                    @case('partial') جزء نقدي / آجل @break
+                    @default -
+                @endswitch
+            </span>
+        </div>
 
-            <div class="line">
-                <span class="label">الفرع</span>
-                <span class="value">{{ $invoice->branch?->name ?? $invoice->warehouse?->branch?->name ?? '-' }}</span>
-            </div>
-
-            <div class="line">
-                <span class="label">طريقة السداد</span>
-                <span class="value">
-                    @switch($invoice->payment_type)
-                        @case('cash') نقدي @break
-                        @case('credit') آجل @break
-                        @case('partial') جزء نقدي / آجل @break
-                        @default -
-                    @endswitch
-                </span>
-            </div>
-
-            <div class="line">
-                <span class="label">المستخدم</span>
-                <span class="value">{{ $invoice->user?->name ?? '-' }}</span>
-            </div>
+        <div class="line">
+            <span class="label">المستخدم</span>
+            <span class="value">{{ $invoice->user?->name ?? '-' }}</span>
         </div>
     </div>
 
+    <div class="box">
+        <h3>بيانات العميل والمخزن</h3>
+
+        <div class="line">
+            <span class="label">العميل</span>
+            <span class="value">{{ $invoice->customer?->name ?? '-' }}</span>
+        </div>
+        <div class="line">
+                <span class="label">الموبايل</span>
+                <span class="value">{{ $invoice->customer?->mobile ?? $invoice->customer?->phone ?? '-' }}</span>
+            </div>
+        <div class="line">
+            <span class="label">كود العميل</span>
+            <span class="value">{{ $invoice->customer?->code ?? '-' }}</span>
+        </div>
+
+        <div class="line">
+            <span class="label">المخزن</span>
+            <span class="value">{{ $invoice->warehouse?->name ?? '-' }}</span>
+        </div>
+
+        <div class="line">
+            <span class="label">الفرع</span>
+            <span class="value">{{ $invoice->branch?->name ?? $invoice->warehouse?->branch?->name ?? '-' }}</span>
+        </div>
+    </div>
+</div>
+    
     <table>
         <thead>
         <tr>
