@@ -13,33 +13,76 @@ class SupplierForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
+            ->columns(2)
             ->components([
                 Select::make('branch_id')
-                    ->relationship('branch', 'name'),
+                    ->label('الفرع')
+                    ->relationship('branch', 'name')
+                    ->searchable()
+                    ->preload(),
+
                 TextInput::make('code')
-                    ->required(),
-                TextInput::make('name')
-                    ->required(),
-                TextInput::make('phone')
-                    ->tel(),
-                TextInput::make('mobile'),
-                TextInput::make('email')
-                    ->label('Email address')
-                    ->email(),
-                TextInput::make('governorate'),
-                TextInput::make('city'),
-                TextInput::make('address'),
-                TextInput::make('opening_balance')
+                    ->label('كود المورد')
                     ->required()
+                    ->maxLength(50)
+                    ->unique(ignoreRecord: true),
+
+                TextInput::make('name')
+                    ->label('اسم المورد')
+                    ->required()
+                    ->maxLength(255)
+                    ->autofocus(),
+
+                TextInput::make('phone')
+                    ->label('الهاتف')
+                    ->tel()
+                    ->maxLength(50),
+
+                TextInput::make('mobile')
+                    ->label('الموبايل')
+                    ->tel()
+                    ->maxLength(50),
+
+                TextInput::make('email')
+                    ->label('البريد الإلكتروني')
+                    ->email()
+                    ->maxLength(255),
+
+                TextInput::make('governorate')
+                    ->label('المحافظة')
+                    ->maxLength(100),
+
+                TextInput::make('city')
+                    ->label('المدينة / المركز')
+                    ->maxLength(100),
+
+                TextInput::make('address')
+                    ->label('العنوان')
+                    ->maxLength(255)
+                    ->columnSpanFull(),
+
+                TextInput::make('opening_balance')
+                    ->label('الرصيد الافتتاحي')
                     ->numeric()
                     ->default(0),
-                TextInput::make('balance_type')
-                    ->required()
-                    ->default('credit'),
-                Textarea::make('notes')
-                    ->columnSpanFull(),
-                Toggle::make('is_active')
+
+                Select::make('balance_type')
+                    ->label('نوع الرصيد')
+                    ->options([
+                        'debit' => 'مدين / عليه',
+                        'credit' => 'دائن / له',
+                    ])
+                    ->default('credit')
                     ->required(),
+
+                Toggle::make('is_active')
+                    ->label('نشط')
+                    ->default(true),
+
+                Textarea::make('notes')
+                    ->label('ملاحظات')
+                    ->rows(3)
+                    ->columnSpanFull(),
             ]);
     }
 }

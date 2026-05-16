@@ -24,6 +24,31 @@ class SupplierResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    public static function getModelLabel(): string
+    {
+        return 'مورد';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'الموردين';
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return 'الموردين';
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return 'التعريفات الرئيسية';
+    }
+
+    public static function getNavigationSort(): ?int
+    {
+        return 7;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return SupplierForm::configure($schema);
