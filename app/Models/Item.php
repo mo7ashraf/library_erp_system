@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Item extends Model
 {
@@ -93,5 +94,15 @@ class Item extends Model
     public function largeUnit(): BelongsTo
     {
         return $this->belongsTo(Unit::class, 'large_unit_id');
+    }
+
+    public function stockMovements(): HasMany
+    {
+        return $this->hasMany(StockMovement::class);
+    }
+
+    public function warehouseBalances(): HasMany
+    {
+        return $this->hasMany(WarehouseItemBalance::class);
     }
 }
