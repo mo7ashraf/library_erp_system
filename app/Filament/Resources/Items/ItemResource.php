@@ -20,9 +20,34 @@ class ItemResource extends Resource
 {
     protected static ?string $model = Item::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBookOpen;
 
     protected static ?string $recordTitleAttribute = 'name';
+
+    public static function getModelLabel(): string
+    {
+        return 'صنف';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'الأصناف';
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return 'بيانات الأصناف';
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return 'التعريفات الرئيسية';
+    }
+
+    public static function getNavigationSort(): ?int
+    {
+        return 8;
+    }
 
     public static function form(Schema $schema): Schema
     {

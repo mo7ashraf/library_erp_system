@@ -9,6 +9,8 @@ use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
 class ItemsTable
@@ -16,112 +18,134 @@ class ItemsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->defaultSort('id', 'desc')
             ->columns([
-                TextColumn::make('item_group_id')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('item_subgroup_id')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('baseUnit.name')
-                    ->searchable(),
-                TextColumn::make('middleUnit.name')
-                    ->searchable(),
-                TextColumn::make('largeUnit.name')
-                    ->searchable(),
+                ImageColumn::make('image_path')
+                    ->label('الصورة')
+                    ->circular(),
+
                 TextColumn::make('code')
-                    ->searchable(),
-                TextColumn::make('origin_code')
-                    ->searchable(),
+                    ->label('كود الصنف')
+                    ->searchable()
+                    ->sortable(),
+
                 TextColumn::make('barcode')
-                    ->searchable(),
+                    ->label('الباركود')
+                    ->searchable()
+                    ->toggleable(),
+
                 TextColumn::make('name')
-                    ->searchable(),
-                TextColumn::make('source')
-                    ->searchable(),
-                TextColumn::make('publisher')
-                    ->searchable(),
-                TextColumn::make('purchase_price')
-                    ->money()
-                    ->sortable(),
-                TextColumn::make('first_discount_percent')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('second_discount_percent')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('net_purchase_price')
-                    ->money()
-                    ->sortable(),
-                TextColumn::make('total_cost')
-                    ->money()
-                    ->sortable(),
-                TextColumn::make('profit_margin_percent')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('student_price')
-                    ->money()
-                    ->sortable(),
-                TextColumn::make('teacher_price')
-                    ->money()
-                    ->sortable(),
-                TextColumn::make('representative_price')
-                    ->money()
-                    ->sortable(),
-                TextColumn::make('retail_price')
-                    ->money()
-                    ->sortable(),
-                TextColumn::make('wholesale_price')
-                    ->money()
-                    ->sortable(),
-                TextColumn::make('teacher_discount_percent')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('representative_discount_percent')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('return_percent')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('max_stock')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('min_stock')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('reorder_level')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('units_per_middle')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('units_per_large')
-                    ->numeric()
-                    ->sortable(),
-                ImageColumn::make('image_path'),
-                IconColumn::make('continue_balance')
-                    ->boolean(),
-                IconColumn::make('is_active')
-                    ->boolean(),
-                TextColumn::make('created_at')
-                    ->dateTime()
+                    ->label('اسم الصنف')
+                    ->searchable()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
+                    ->limit(40),
+
+                TextColumn::make('group.name')
+                    ->label('المجموعة')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(),
+
+                TextColumn::make('subgroup.name')
+                    ->label('المجموعة الفرعية')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(),
+
+                TextColumn::make('baseUnit.name')
+                    ->label('الوحدة')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('purchase_price')
+                    ->label('سعر الشراء')
+                    ->money('EGP')
+                    ->sortable()
+                    ->toggleable(),
+
+                TextColumn::make('student_price')
+                    ->label('سعر الطالب')
+                    ->money('EGP')
+                    ->sortable(),
+
+                TextColumn::make('teacher_price')
+                    ->label('سعر المدرس')
+                    ->money('EGP')
+                    ->sortable()
+                    ->toggleable(),
+
+                TextColumn::make('representative_price')
+                    ->label('سعر المندوب')
+                    ->money('EGP')
+                    ->sortable()
+                    ->toggleable(),
+
+                TextColumn::make('retail_price')
+                    ->label('سعر القطاعي')
+                    ->money('EGP')
+                    ->sortable()
+                    ->toggleable(),
+
+                TextColumn::make('wholesale_price')
+                    ->label('سعر الجملة')
+                    ->money('EGP')
+                    ->sortable()
+                    ->toggleable(),
+
+                TextColumn::make('reorder_level')
+                    ->label('حد الطلب')
+                    ->numeric()
+                    ->sortable()
+                    ->toggleable(),
+
+                IconColumn::make('continue_balance')
+                    ->label('استمرار الرصيد')
+                    ->boolean()
+                    ->toggleable(),
+
+                IconColumn::make('is_active')
+                    ->label('نشط')
+                    ->boolean()
+                    ->sortable(),
+
+                TextColumn::make('created_at')
+                    ->label('تاريخ الإضافة')
+                    ->dateTime('Y-m-d H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('item_group_id')
+                    ->label('مجموعة الصنف')
+                    ->relationship('group', 'name')
+                    ->searchable()
+                    ->preload(),
+
+                SelectFilter::make('item_subgroup_id')
+                    ->label('المجموعة الفرعية')
+                    ->relationship('subgroup', 'name')
+                    ->searchable()
+                    ->preload(),
+
+                TernaryFilter::make('is_active')
+                    ->label('الحالة')
+                    ->placeholder('الكل')
+                    ->trueLabel('نشط فقط')
+                    ->falseLabel('غير نشط فقط'),
+
+                TernaryFilter::make('continue_balance')
+                    ->label('استمرار الرصيد')
+                    ->placeholder('الكل')
+                    ->trueLabel('أصناف مستمرة الرصيد')
+                    ->falseLabel('أصناف غير مستمرة الرصيد'),
             ])
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
+                ViewAction::make()->label('عرض'),
+                EditAction::make()->label('تعديل'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()->label('حذف المحدد'),
                 ]),
             ]);
     }
