@@ -13,7 +13,8 @@ class ListItemGroups extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->label('مجموعة جديدة'),
         ];
     }
 }

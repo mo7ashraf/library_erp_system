@@ -12,15 +12,28 @@ class ItemGroupForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
+            ->columns(2)
             ->components([
                 TextInput::make('code')
-                    ->required(),
+                    ->label('كود المجموعة')
+                    ->required()
+                    ->maxLength(50)
+                    ->unique(ignoreRecord: true),
+
                 TextInput::make('name')
-                    ->required(),
-                Textarea::make('notes')
-                    ->columnSpanFull(),
+                    ->label('اسم المجموعة')
+                    ->required()
+                    ->maxLength(255)
+                    ->autofocus(),
+
                 Toggle::make('is_active')
-                    ->required(),
+                    ->label('نشط')
+                    ->default(true),
+
+                Textarea::make('notes')
+                    ->label('ملاحظات')
+                    ->rows(3)
+                    ->columnSpanFull(),
             ]);
     }
 }

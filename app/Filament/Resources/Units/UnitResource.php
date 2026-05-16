@@ -24,6 +24,31 @@ class UnitResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    public static function getModelLabel(): string
+    {
+        return 'وحدة';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'الوحدات';
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return 'الوحدات';
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return 'التعريفات الرئيسية';
+    }
+
+    public static function getNavigationSort(): ?int
+    {
+        return 2;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return UnitForm::configure($schema);

@@ -12,16 +12,32 @@ class UnitForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
+            ->columns(2)
             ->components([
                 TextInput::make('code')
-                    ->required(),
+                    ->label('كود الوحدة')
+                    ->required()
+                    ->maxLength(50)
+                    ->unique(ignoreRecord: true),
+
                 TextInput::make('name')
-                    ->required(),
-                TextInput::make('symbol'),
-                Textarea::make('notes')
-                    ->columnSpanFull(),
+                    ->label('اسم الوحدة')
+                    ->required()
+                    ->maxLength(255)
+                    ->autofocus(),
+
+                TextInput::make('symbol')
+                    ->label('الاختصار / الرمز')
+                    ->maxLength(50),
+
                 Toggle::make('is_active')
-                    ->required(),
+                    ->label('نشط')
+                    ->default(true),
+
+                Textarea::make('notes')
+                    ->label('ملاحظات')
+                    ->rows(3)
+                    ->columnSpanFull(),
             ]);
     }
 }
