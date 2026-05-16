@@ -7,6 +7,7 @@ use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Filament\Actions\Action;
 
 class SalesInvoicesTable
 {
@@ -131,6 +132,11 @@ class SalesInvoicesTable
             ])
             ->recordActions([
                 ViewAction::make()->label('عرض'),
+
+                Action::make('print_receipt')
+                    ->label('طباعة')
+                    ->url(fn (SalesInvoice $record): string => route('admin.prints.sales-invoices.receipt', $record))
+                    ->openUrlInNewTab(),
             ]);
     }
 }
