@@ -12,18 +12,38 @@ class BranchForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
+            ->columns(2)
             ->components([
                 TextInput::make('code')
-                    ->required(),
+                    ->label('كود الفرع')
+                    ->required()
+                    ->maxLength(50)
+                    ->unique(ignoreRecord: true),
+
                 TextInput::make('name')
-                    ->required(),
+                    ->label('اسم الفرع')
+                    ->required()
+                    ->maxLength(255)
+                    ->autofocus(),
+
                 TextInput::make('phone')
-                    ->tel(),
-                TextInput::make('address'),
-                Textarea::make('notes')
+                    ->label('رقم الهاتف')
+                    ->tel()
+                    ->maxLength(50),
+
+                TextInput::make('address')
+                    ->label('مكان الفرع')
+                    ->maxLength(255)
                     ->columnSpanFull(),
+
+                Textarea::make('notes')
+                    ->label('ملاحظات')
+                    ->rows(3)
+                    ->columnSpanFull(),
+
                 Toggle::make('is_active')
-                    ->required(),
+                    ->label('نشط')
+                    ->default(true),
             ]);
     }
 }

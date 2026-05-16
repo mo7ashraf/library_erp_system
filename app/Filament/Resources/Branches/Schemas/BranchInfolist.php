@@ -11,23 +11,40 @@ class BranchInfolist
     public static function configure(Schema $schema): Schema
     {
         return $schema
+            ->columns(2)
             ->components([
-                TextEntry::make('code'),
-                TextEntry::make('name'),
+                TextEntry::make('code')
+                    ->label('كود الفرع'),
+
+                TextEntry::make('name')
+                    ->label('اسم الفرع'),
+
                 TextEntry::make('phone')
+                    ->label('رقم الهاتف')
                     ->placeholder('-'),
+
                 TextEntry::make('address')
-                    ->placeholder('-'),
-                TextEntry::make('notes')
+                    ->label('مكان الفرع')
                     ->placeholder('-')
                     ->columnSpanFull(),
+
+                TextEntry::make('notes')
+                    ->label('ملاحظات')
+                    ->placeholder('-')
+                    ->columnSpanFull(),
+
                 IconEntry::make('is_active')
+                    ->label('نشط')
                     ->boolean(),
+
                 TextEntry::make('created_at')
-                    ->dateTime()
+                    ->label('تاريخ الإضافة')
+                    ->dateTime('Y-m-d H:i')
                     ->placeholder('-'),
+
                 TextEntry::make('updated_at')
-                    ->dateTime()
+                    ->label('آخر تعديل')
+                    ->dateTime('Y-m-d H:i')
                     ->placeholder('-'),
             ]);
     }
