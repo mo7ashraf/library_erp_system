@@ -2,6 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SalesInvoiceReceiptController;
+use App\Http\Controllers\StockTransferReceiptController;
+use App\Http\Controllers\SalesReturnReceiptController;
+use App\Http\Controllers\PurchaseReturnReceiptController;
 
 Route::middleware(['auth'])
     ->prefix('admin/prints')
@@ -9,6 +12,15 @@ Route::middleware(['auth'])
     ->group(function () {
         Route::get('/sales-invoices/{salesInvoice}/receipt', [SalesInvoiceReceiptController::class, 'show'])
             ->name('sales-invoices.receipt');
+        
+        Route::get('/stock-transfers/{stockTransfer}/receipt', [StockTransferReceiptController::class, 'show'])
+            ->name('stock-transfers.receipt');
+        
+        Route::get('/sales-returns/{salesReturn}/receipt', [SalesReturnReceiptController::class, 'show'])
+            ->name('sales-returns.receipt');
+
+        Route::get('/purchase-returns/{purchaseReturn}/receipt', [PurchaseReturnReceiptController::class, 'show'])
+            ->name('purchase-returns.receipt');
     });
 
 Route::get('/', function () {

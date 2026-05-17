@@ -7,6 +7,7 @@ use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Filament\Actions\Action;
 
 class SalesReturnsTable
 {
@@ -100,8 +101,14 @@ class SalesReturnsTable
                         SalesReturn::STATUS_POSTED => 'مرحلة',
                     ]),
             ])
-            ->recordActions([
+           ->recordActions([
                 ViewAction::make()->label('عرض'),
-            ]);
+
+                Action::make('print_receipt')
+                    ->label('طباعة')
+                    ->url(fn (SalesReturn $record): string => route('admin.prints.sales-returns.receipt', $record))
+                    ->openUrlInNewTab(),
+            ])
+            ;
     }
 }

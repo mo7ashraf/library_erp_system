@@ -7,6 +7,7 @@ use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Filament\Actions\Action;
 
 class PurchaseReturnsTable
 {
@@ -102,6 +103,11 @@ class PurchaseReturnsTable
             ])
             ->recordActions([
                 ViewAction::make()->label('عرض'),
+
+                Action::make('print_receipt')
+                    ->label('طباعة')
+                    ->url(fn (PurchaseReturn $record): string => route('admin.prints.purchase-returns.receipt', $record))
+                    ->openUrlInNewTab(),
             ]);
     }
 }

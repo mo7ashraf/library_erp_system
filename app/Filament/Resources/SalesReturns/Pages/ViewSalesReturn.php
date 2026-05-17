@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\SalesReturns\Pages;
 
 use App\Filament\Resources\SalesReturns\SalesReturnResource;
-use Filament\Actions\EditAction;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewSalesReturn extends ViewRecord
@@ -13,7 +13,10 @@ class ViewSalesReturn extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            EditAction::make(),
+            Action::make('print_receipt')
+                ->label('طباعة المرتجع')
+                ->url(fn (): string => route('admin.prints.sales-returns.receipt', $this->record))
+                ->openUrlInNewTab(),
         ];
     }
 }
