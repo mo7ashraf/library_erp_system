@@ -14,6 +14,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Illuminate\Validation\Rules\Numeric;
 
 class DamagedStockDocumentForm
 {
@@ -90,7 +91,14 @@ class DamagedStockDocumentForm
                             ->relationship('items')
                             ->columns(6)
                             ->schema([
-                                Hidden::make('unit_cost'),
+                                 Hidden::make('unit_cost'),
+
+                                TextInput::make('available_quantity')
+                                    ->label('الرصيد المتاح')
+                                    ->numeric()
+                                    ->disabled()
+                                    ->dehydrated(false)
+                                    ->default(0),
 
                                 Select::make('item_id')
                                     ->label('الصنف')
@@ -104,12 +112,14 @@ class DamagedStockDocumentForm
                                         $warehouseId = $get('../../warehouse_id');
                                         $balance = self::getCurrentBalance($warehouseId, $state);
 
+                                        $set('available_quantity', $balance['quantity']);
                                         $set('unit_cost', $balance['average_cost']);
                                         $set('quantity', null);
                                     })
                                     ->helperText(function (Get $get): string {
                                         $warehouseId = $get('../../warehouse_id');
                                         $itemId = $get('item_id');
+
                                         $balance = self::getCurrentBalance($warehouseId, $itemId);
 
                                         return 'الرصيد المتاح: '
@@ -129,17 +139,25 @@ class DamagedStockDocumentForm
                                     ->numeric()
                                     ->required()
                                     ->minValue(0.001)
-                                    ->maxValue(fn (Get $get): float => self::getCurrentBalance(
-                                        $get('../../warehouse_id'),
-                                        $get('item_id'),
-                                    )['quantity'])
                                     ->helperText(fn (Get $get): string => 'الحد الأقصى المسموح: ' . number_format(
                                         self::getCurrentBalance(
                                             $get('../../warehouse_id'),
                                             $get('item_id'),
                                         )['quantity'],
                                         3
-                                    )),
+                                    ))
+                                    ->rule(function (Get $get) {
+                                        return function (string $attribute, $value, \Closure $fail) use ($get): void {
+                                            $warehouseId = $get('../../warehouse_id');
+                                            $itemId = $get('item_id');
+
+                                            $availableQty = self::getCurrentBalance($warehouseId, $itemId)['quantity'];
+
+                                            if ((float) $value > (float) $availableQty) {
+                                                $fail("لا يمكن إخراج كمية {$value}. الرصيد المتاح هو {$availableQty} فقط.");
+                                            }
+                                        };
+                                    }),
 
                                 TextInput::make('notes')
                                     ->label('ملاحظات')

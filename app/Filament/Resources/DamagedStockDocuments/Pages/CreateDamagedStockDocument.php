@@ -41,6 +41,12 @@ class CreateDamagedStockDocument extends CreateRecord
                 ->where('item_id', $itemId)
                 ->value('quantity');
 
+            if ($requiredQty <= 0) {
+                throw ValidationException::withMessages([
+                    'items' => 'يجب أن تكون الكمية أكبر من صفر.',
+                ]);
+            }
+
             if ($requiredQty > $availableQty) {
                 throw ValidationException::withMessages([
                     'items' => "لا يمكن إخراج كمية {$requiredQty}. الرصيد المتاح لهذا الصنف هو {$availableQty} فقط.",

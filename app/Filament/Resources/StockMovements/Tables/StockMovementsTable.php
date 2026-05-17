@@ -13,27 +13,18 @@ class StockMovementsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->defaultSort('movement_date', 'desc')
+            ->defaultSort('id', 'desc')
             ->columns([
                 TextColumn::make('movement_date')
-                    ->label('تاريخ الحركة')
+                    ->label('التاريخ')
                     ->date('Y-m-d')
                     ->sortable(),
 
-                TextColumn::make('warehouse.name')
-                    ->label('المخزن')
+                TextColumn::make('reference_number')
+                    ->label('رقم المرجع')
                     ->searchable()
-                    ->sortable(),
-
-                TextColumn::make('item.code')
-                    ->label('كود الصنف')
-                    ->searchable()
-                    ->sortable(),
-
-                TextColumn::make('item.name')
-                    ->label('اسم الصنف')
-                    ->searchable()
-                    ->limit(40),
+                    ->sortable()
+                    ->copyable(),
 
                 TextColumn::make('movement_type')
                     ->label('نوع الحركة')
@@ -51,6 +42,7 @@ class StockMovementsTable
                         StockMovement::TYPE_MANUAL_ADJUSTMENT => 'تسوية يدوية',
                         default => $state ?? '-',
                     })
+                    ->badge()
                     ->sortable(),
 
                 TextColumn::make('direction')
@@ -60,34 +52,52 @@ class StockMovementsTable
                         StockMovement::DIRECTION_OUT => 'صادر',
                         default => '-',
                     })
+                    ->badge()
                     ->sortable(),
 
                 TextColumn::make('quantity')
                     ->label('الكمية')
-                    ->numeric()
+                    ->numeric(decimalPlaces: 3)
+                    ->sortable(),
+
+                TextColumn::make('balance_after')
+                    ->label('الرصيد بعد الحركة')
+                    ->numeric(decimalPlaces: 3)
                     ->sortable(),
 
                 TextColumn::make('unit_cost')
                     ->label('تكلفة الوحدة')
-                    ->money('EGP')
+                    ->formatStateUsing(fn ($state): string => number_format((float) $state, 2) . ' ج.م')
                     ->sortable()
                     ->toggleable(),
 
                 TextColumn::make('total_cost')
                     ->label('إجمالي التكلفة')
-                    ->money('EGP')
+                    ->formatStateUsing(fn ($state): string => number_format((float) $state, 2) . ' ج.م')
                     ->sortable()
                     ->toggleable(),
 
-                TextColumn::make('balance_after')
-                    ->label('الرصيد بعد الحركة')
-                    ->numeric()
-                    ->sortable(),
-
-                TextColumn::make('reference_number')
-                    ->label('رقم المرجع')
+                TextColumn::make('item.code')
+                    ->label('كود الصنف')
                     ->searchable()
                     ->toggleable(),
+
+                TextColumn::make('item.name')
+                    ->label('اسم الصنف')
+                    ->searchable()
+                    ->limit(35)
+                    ->toggleable(),
+
+                TextColumn::make('warehouse.name')
+                    ->label('المخزن')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(),
+
+                TextColumn::make('branch.name')
+                    ->label('الفرع')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('user.name')
                     ->label('المستخدم')
@@ -95,7 +105,7 @@ class StockMovementsTable
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('created_at')
-                    ->label('تاريخ التسجيل')
+                    ->label('وقت التسجيل')
                     ->dateTime('Y-m-d H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
