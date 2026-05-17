@@ -5,6 +5,7 @@ use App\Http\Controllers\SalesInvoiceReceiptController;
 use App\Http\Controllers\StockTransferReceiptController;
 use App\Http\Controllers\SalesReturnReceiptController;
 use App\Http\Controllers\PurchaseReturnReceiptController;
+use App\Http\Controllers\StockCountReceiptController;
 
 Route::middleware(['auth'])
     ->prefix('admin/prints')
@@ -21,6 +22,9 @@ Route::middleware(['auth'])
 
         Route::get('/purchase-returns/{purchaseReturn}/receipt', [PurchaseReturnReceiptController::class, 'show'])
             ->name('purchase-returns.receipt');
+        
+        Route::get('/stock-count-documents/{stockCountDocument}/receipt', [StockCountReceiptController::class, 'show'])
+            ->name('stock-count-documents.receipt');
     });
 
 Route::get('/', function () {
