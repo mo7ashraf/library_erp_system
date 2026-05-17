@@ -10,6 +10,11 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use App\Models\PurchaseInvoice;
+use App\Models\PurchaseInvoiceItem;
+use App\Models\PurchaseReturnItem;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 
 class PurchaseReturnForm
 {
@@ -35,10 +40,23 @@ class PurchaseReturnForm
 
                         Select::make('purchase_invoice_id')
                             ->label('فاتورة الشراء الأصلية')
-                            ->relationship('purchaseInvoice', 'invoice_number')
+                            ->options(
+                                fn () => PurchaseInvoice::query()
+                                    ->where('status', PurchaseInvoice::STATUS_POSTED)
+                                    ->latest('invoice_date')
+                                    ->pluck('invoice_number', 'id')
+                            )
                             ->searchable()
                             ->preload()
-                            ->nullable(),
+                            ->required()
+                            ->live()
+                            ->afterStateUpdated(function (?int $state, Set $set): void {
+                                $invoice = PurchaseInvoice::find($state);
+
+                                $set('supplier_id', $invoice?->supplier_id);
+                                $set('warehouse_id', $invoice?->warehouse_id);
+                                $set('items', []);
+                            }),
 
                         Select::make('supplier_id')
                             ->label('المورد')
@@ -84,10 +102,62 @@ class PurchaseReturnForm
                             ->schema([
                                 Select::make('item_id')
                                     ->label('الصنف')
-                                    ->relationship('item', 'name')
+                                    ->options(function (Get $get): array {
+                                        $invoiceId = $get('../../purchase_invoice_id');
+
+                                        if (! $invoiceId) {
+                                            return [];
+                                        }
+
+                                        return PurchaseInvoiceItem::query()
+                                            ->with('item')
+                                            ->where('purchase_invoice_id', $invoiceId)
+                                            ->get()
+                                            ->mapWithKeys(function (PurchaseInvoiceItem $line) use ($invoiceId) {
+                                                $originalQty = (float) PurchaseInvoiceItem::query()
+                                                    ->where('purchase_invoice_id', $invoiceId)
+                                                    ->where('item_id', $line->item_id)
+                                                    ->sum('quantity');
+
+                                                $returnedQty = (float) PurchaseReturnItem::query()
+                                                    ->where('item_id', $line->item_id)
+                                                    ->whereHas('purchaseReturn', function ($query) use ($invoiceId) {
+                                                        $query
+                                                            ->where('purchase_invoice_id', $invoiceId)
+                                                            ->where('status', PurchaseReturn::STATUS_POSTED);
+                                                    })
+                                                    ->sum('quantity');
+
+                                                $availableQty = max(0, $originalQty - $returnedQty);
+
+                                                return [
+                                                    $line->item_id => ($line->item?->name ?? 'صنف غير معروف')
+                                                        . ' — المتاح للمرتجع: '
+                                                        . number_format($availableQty, 3),
+                                                ];
+                                            })
+                                            ->toArray();
+                                    })
                                     ->searchable()
-                                    ->preload()
                                     ->required()
+                                    ->live()
+                                    ->afterStateUpdated(function (?int $state, Get $get, Set $set): void {
+                                        $invoiceId = $get('../../purchase_invoice_id');
+
+                                        if (! $invoiceId || ! $state) {
+                                            return;
+                                        }
+
+                                        $line = PurchaseInvoiceItem::query()
+                                            ->where('purchase_invoice_id', $invoiceId)
+                                            ->where('item_id', $state)
+                                            ->first();
+
+                                        $set('unit_id', $line?->unit_id);
+                                        $set('unit_price', $line?->unit_price ?? 0);
+                                        $set('discount_percent', $line?->discount_percent ?? 0);
+                                        $set('purchase_invoice_item_id', $line?->id);
+                                    })
                                     ->columnSpan(2),
 
                                 Select::make('unit_id')

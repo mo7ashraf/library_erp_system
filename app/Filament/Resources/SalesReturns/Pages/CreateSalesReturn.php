@@ -9,6 +9,9 @@ use App\Models\Warehouse;
 use App\Services\Inventory\StockService;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
+use App\Models\SalesInvoiceItem;
+use App\Models\SalesReturnItem;
+use Illuminate\Validation\ValidationException;
 
 class CreateSalesReturn extends CreateRecord
 {
@@ -31,10 +34,10 @@ class CreateSalesReturn extends CreateRecord
     {
         DB::transaction(function (): void {
             $this->record->load(['warehouse', 'items']);
-
             if ($this->record->status === SalesReturn::STATUS_POSTED) {
                 return;
             }
+            $this->validateReturnQuantities();
 
             $this->record->recalculateTotals();
 
@@ -61,11 +64,95 @@ class CreateSalesReturn extends CreateRecord
                 'status' => SalesReturn::STATUS_POSTED,
                 'posted_at' => now(),
             ]);
+            
         });
     }
 
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('view', ['record' => $this->record]);
+    }
+
+    // private function validateReturnQuantities(): void
+    // {
+    //     if (! $this->record->sales_invoice_id) {
+    //         throw ValidationException::withMessages([
+    //             'sales_invoice_id' => 'يجب اختيار فاتورة البيع الأصلية قبل تسجيل المرتجع.',
+    //         ]);
+    //     }
+
+    //     $invoiceId = $this->record->sales_invoice_id;
+
+    //     $returnItems = $this->record->items
+    //         ->groupBy('item_id')
+    //         ->map(fn ($lines) => (float) $lines->sum('quantity'));
+
+    //     foreach ($returnItems as $itemId => $newReturnQty) {
+    //         $originalQty = (float) SalesInvoiceItem::query()
+    //             ->where('sales_invoice_id', $invoiceId)
+    //             ->where('item_id', $itemId)
+    //             ->sum('quantity');
+
+    //         $alreadyReturnedQty = (float) SalesReturnItem::query()
+    //             ->where('item_id', $itemId)
+    //             ->whereHas('salesReturn', function ($query) use ($invoiceId) {
+    //                 $query
+    //                     ->where('sales_invoice_id', $invoiceId)
+    //                     ->where('status', SalesReturn::STATUS_POSTED);
+    //             })
+    //             ->sum('quantity');
+
+    //         $availableQty = max(0, $originalQty - $alreadyReturnedQty);
+
+    //         if ($originalQty <= 0) {
+    //             throw ValidationException::withMessages([
+    //                 'items' => 'يوجد صنف في المرتجع غير موجود في فاتورة البيع الأصلية.',
+    //             ]);
+    //         }
+
+    //         if ($newReturnQty > $availableQty) {
+    //             throw ValidationException::withMessages([
+    //                 'items' => "لا يمكن إرجاع كمية {$newReturnQty}. الكمية المتاحة للمرتجع من هذا الصنف هي {$availableQty} فقط.",
+    //             ]);
+    //         }
+    //     }
+    // }
+    private function validateReturnQuantities(): void
+    {
+        $invoiceId = $this->record->sales_invoice_id;
+
+        if (! $invoiceId) {
+            throw ValidationException::withMessages([
+                'sales_invoice_id' => 'يجب اختيار فاتورة البيع الأصلية.',
+            ]);
+        }
+
+        $returnItems = $this->record->items
+            ->groupBy('item_id')
+            ->map(fn ($lines) => (float) $lines->sum('quantity'));
+
+        foreach ($returnItems as $itemId => $newReturnQty) {
+            $originalQty = (float) SalesInvoiceItem::query()
+                ->where('sales_invoice_id', $invoiceId)
+                ->where('item_id', $itemId)
+                ->sum('quantity');
+
+            $alreadyReturnedQty = (float) SalesReturnItem::query()
+                ->where('item_id', $itemId)
+                ->whereHas('salesReturn', function ($query) use ($invoiceId) {
+                    $query
+                        ->where('sales_invoice_id', $invoiceId)
+                        ->where('status', \App\Models\SalesReturn::STATUS_POSTED);
+                })
+                ->sum('quantity');
+
+            $availableQty = max(0, $originalQty - $alreadyReturnedQty);
+
+            if ($newReturnQty > $availableQty) {
+                throw ValidationException::withMessages([
+                    'items' => "لا يمكن إرجاع كمية {$newReturnQty}. الحد الأقصى المتاح هو {$availableQty}.",
+                ]);
+            }
+        }
     }
 }
