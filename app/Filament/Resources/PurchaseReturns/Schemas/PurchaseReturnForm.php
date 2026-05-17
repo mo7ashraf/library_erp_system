@@ -15,9 +15,45 @@ use App\Models\PurchaseInvoiceItem;
 use App\Models\PurchaseReturnItem;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
+use Filament\Forms\Components\Hidden;
 
 class PurchaseReturnForm
 {
+    private static function availableReturnQuantity(?int $invoiceId, ?int $itemId): float
+    {
+        if (! $invoiceId || ! $itemId) {
+            return 0;
+        }
+
+        $originalQty = (float) PurchaseInvoiceItem::query()
+            ->where('purchase_invoice_id', $invoiceId)
+            ->where('item_id', $itemId)
+            ->sum('quantity');
+
+        $returnedQty = (float) PurchaseReturnItem::query()
+            ->where('item_id', $itemId)
+            ->whereHas('purchaseReturn', function ($query) use ($invoiceId) {
+                $query
+                    ->where('purchase_invoice_id', $invoiceId)
+                    ->where('status', PurchaseReturn::STATUS_POSTED);
+            })
+            ->sum('quantity');
+
+        return max(0, $originalQty - $returnedQty);
+    }
+
+    private static function firstInvoiceLine(?int $invoiceId, ?int $itemId): ?PurchaseInvoiceItem
+    {
+        if (! $invoiceId || ! $itemId) {
+            return null;
+        }
+
+        return PurchaseInvoiceItem::query()
+            ->where('purchase_invoice_id', $invoiceId)
+            ->where('item_id', $itemId)
+            ->first();
+    }
+
     public static function configure(Schema $schema): Schema
     {
         return $schema
@@ -100,6 +136,7 @@ class PurchaseReturnForm
                             ->relationship('items')
                             ->columns(6)
                             ->schema([
+                                Hidden::make('purchase_invoice_item_id'),
                                 Select::make('item_id')
                                     ->label('الصنف')
                                     ->options(function (Get $get): array {
@@ -113,26 +150,18 @@ class PurchaseReturnForm
                                             ->with('item')
                                             ->where('purchase_invoice_id', $invoiceId)
                                             ->get()
-                                            ->mapWithKeys(function (PurchaseInvoiceItem $line) use ($invoiceId) {
-                                                $originalQty = (float) PurchaseInvoiceItem::query()
-                                                    ->where('purchase_invoice_id', $invoiceId)
-                                                    ->where('item_id', $line->item_id)
-                                                    ->sum('quantity');
+                                            ->groupBy('item_id')
+                                            ->mapWithKeys(function ($lines) use ($invoiceId) {
+                                                $line = $lines->first();
+                                                $availableQty = self::availableReturnQuantity($invoiceId, $line->item_id);
 
-                                                $returnedQty = (float) PurchaseReturnItem::query()
-                                                    ->where('item_id', $line->item_id)
-                                                    ->whereHas('purchaseReturn', function ($query) use ($invoiceId) {
-                                                        $query
-                                                            ->where('purchase_invoice_id', $invoiceId)
-                                                            ->where('status', PurchaseReturn::STATUS_POSTED);
-                                                    })
-                                                    ->sum('quantity');
-
-                                                $availableQty = max(0, $originalQty - $returnedQty);
+                                                if ($availableQty <= 0) {
+                                                    return [];
+                                                }
 
                                                 return [
                                                     $line->item_id => ($line->item?->name ?? 'صنف غير معروف')
-                                                        . ' — المتاح للمرتجع: '
+                                                        . ' — الحد الأقصى للمرتجع: '
                                                         . number_format($availableQty, 3),
                                                 ];
                                             })
@@ -143,23 +172,15 @@ class PurchaseReturnForm
                                     ->live()
                                     ->afterStateUpdated(function (?int $state, Get $get, Set $set): void {
                                         $invoiceId = $get('../../purchase_invoice_id');
+                                        $line = self::firstInvoiceLine($invoiceId, $state);
 
-                                        if (! $invoiceId || ! $state) {
-                                            return;
-                                        }
-
-                                        $line = PurchaseInvoiceItem::query()
-                                            ->where('purchase_invoice_id', $invoiceId)
-                                            ->where('item_id', $state)
-                                            ->first();
-
+                                        $set('purchase_invoice_item_id', $line?->id);
                                         $set('unit_id', $line?->unit_id);
                                         $set('unit_price', $line?->unit_price ?? 0);
                                         $set('discount_percent', $line?->discount_percent ?? 0);
-                                        $set('purchase_invoice_item_id', $line?->id);
+                                        $set('quantity', null);
                                     })
                                     ->columnSpan(2),
-
                                 Select::make('unit_id')
                                     ->label('الوحدة')
                                     ->relationship('unit', 'name')
@@ -170,7 +191,19 @@ class PurchaseReturnForm
                                     ->label('الكمية المرتجعة')
                                     ->numeric()
                                     ->required()
-                                    ->minValue(0.001),
+                                    ->minValue(0.001)
+                                    ->maxValue(fn (Get $get): float => self::availableReturnQuantity(
+                                        $get('../../purchase_invoice_id'),
+                                        $get('item_id'),
+                                    ))
+                                    ->helperText(fn (Get $get): string => 'الحد الأقصى المسموح: ' . number_format(
+                                        self::availableReturnQuantity(
+                                            $get('../../purchase_invoice_id'),
+                                            $get('item_id'),
+                                        ),
+                                        3
+                                    ))
+                                    ->validationAttribute('الكمية المرتجعة'),
 
                                 TextInput::make('unit_price')
                                     ->label('سعر الشراء')

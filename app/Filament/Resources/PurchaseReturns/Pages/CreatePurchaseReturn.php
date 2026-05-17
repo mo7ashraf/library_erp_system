@@ -77,16 +77,15 @@ class CreatePurchaseReturn extends CreateRecord
     {
         return $this->getResource()::getUrl('view', ['record' => $this->record]);
     }
-
     private function validateReturnQuantities(): void
     {
-        if (! $this->record->purchase_invoice_id) {
+        $invoiceId = $this->record->purchase_invoice_id;
+
+        if (! $invoiceId) {
             throw ValidationException::withMessages([
-                'purchase_invoice_id' => 'يجب اختيار فاتورة الشراء الأصلية قبل تسجيل المرتجع.',
+                'purchase_invoice_id' => 'يجب اختيار فاتورة الشراء الأصلية.',
             ]);
         }
-
-        $invoiceId = $this->record->purchase_invoice_id;
 
         $returnItems = $this->record->items
             ->groupBy('item_id')
@@ -103,23 +102,62 @@ class CreatePurchaseReturn extends CreateRecord
                 ->whereHas('purchaseReturn', function ($query) use ($invoiceId) {
                     $query
                         ->where('purchase_invoice_id', $invoiceId)
-                        ->where('status', PurchaseReturn::STATUS_POSTED);
+                        ->where('status', \App\Models\PurchaseReturn::STATUS_POSTED);
                 })
                 ->sum('quantity');
 
             $availableQty = max(0, $originalQty - $alreadyReturnedQty);
 
-            if ($originalQty <= 0) {
-                throw ValidationException::withMessages([
-                    'items' => 'يوجد صنف في المرتجع غير موجود في فاتورة الشراء الأصلية.',
-                ]);
-            }
-
             if ($newReturnQty > $availableQty) {
                 throw ValidationException::withMessages([
-                    'items' => "لا يمكن إرجاع كمية {$newReturnQty}. الكمية المتاحة للمرتجع من هذا الصنف هي {$availableQty} فقط.",
+                    'items' => "لا يمكن إرجاع كمية {$newReturnQty}. الحد الأقصى المتاح هو {$availableQty}.",
                 ]);
             }
         }
     }
+
+    // private function validateReturnQuantities(): void
+    // {
+    //     if (! $this->record->purchase_invoice_id) {
+    //         throw ValidationException::withMessages([
+    //             'purchase_invoice_id' => 'يجب اختيار فاتورة الشراء الأصلية قبل تسجيل المرتجع.',
+    //         ]);
+    //     }
+
+    //     $invoiceId = $this->record->purchase_invoice_id;
+
+    //     $returnItems = $this->record->items
+    //         ->groupBy('item_id')
+    //         ->map(fn ($lines) => (float) $lines->sum('quantity'));
+
+    //     foreach ($returnItems as $itemId => $newReturnQty) {
+    //         $originalQty = (float) PurchaseInvoiceItem::query()
+    //             ->where('purchase_invoice_id', $invoiceId)
+    //             ->where('item_id', $itemId)
+    //             ->sum('quantity');
+
+    //         $alreadyReturnedQty = (float) PurchaseReturnItem::query()
+    //             ->where('item_id', $itemId)
+    //             ->whereHas('purchaseReturn', function ($query) use ($invoiceId) {
+    //                 $query
+    //                     ->where('purchase_invoice_id', $invoiceId)
+    //                     ->where('status', PurchaseReturn::STATUS_POSTED);
+    //             })
+    //             ->sum('quantity');
+
+    //         $availableQty = max(0, $originalQty - $alreadyReturnedQty);
+
+    //         if ($originalQty <= 0) {
+    //             throw ValidationException::withMessages([
+    //                 'items' => 'يوجد صنف في المرتجع غير موجود في فاتورة الشراء الأصلية.',
+    //             ]);
+    //         }
+
+    //         if ($newReturnQty > $availableQty) {
+    //             throw ValidationException::withMessages([
+    //                 'items' => "لا يمكن إرجاع كمية {$newReturnQty}. الكمية المتاحة للمرتجع من هذا الصنف هي {$availableQty} فقط.",
+    //             ]);
+    //         }
+    //     }
+    // }
 }
