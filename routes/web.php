@@ -6,6 +6,7 @@ use App\Http\Controllers\StockTransferReceiptController;
 use App\Http\Controllers\SalesReturnReceiptController;
 use App\Http\Controllers\PurchaseReturnReceiptController;
 use App\Http\Controllers\StockCountReceiptController;
+use App\Http\Controllers\DamagedStockReceiptController;
 
 Route::middleware(['auth'])
     ->prefix('admin/prints')
@@ -25,6 +26,9 @@ Route::middleware(['auth'])
         
         Route::get('/stock-count-documents/{stockCountDocument}/receipt', [StockCountReceiptController::class, 'show'])
             ->name('stock-count-documents.receipt');
+
+        Route::get('/damaged-stock-documents/{damagedStockDocument}/receipt', [DamagedStockReceiptController::class, 'show'])
+            ->name('damaged-stock-documents.receipt');
     });
 
 Route::get('/', function () {
