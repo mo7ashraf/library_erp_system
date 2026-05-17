@@ -22,3 +22,23 @@ After adding the files:
 php artisan optimize:clear
 php artisan inventory:check-flow
 php artisan finance:check-flow
+
+
+---
+
+# 5. Run the full checks
+
+Run:
+
+```powershell
+php artisan optimize:clear
+php artisan list | findstr check
+php artisan erp:check-all
+
+## 7. Run all checks together
+
+After adding all testing commands, run:
+
+```powershell
+php artisan optimize:clear
+php artisan erp:check-all
