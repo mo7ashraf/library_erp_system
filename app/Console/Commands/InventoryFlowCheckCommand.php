@@ -52,7 +52,6 @@ class InventoryFlowCheckCommand extends Command
             $unit = Unit::create([
                 'code' => "TEST-UNIT-{$suffix}",
                 'name' => 'قطعة اختبار',
-                'symbol' => 'pcs',
                 'is_active' => true,
             ]);
 
@@ -80,7 +79,6 @@ class InventoryFlowCheckCommand extends Command
 
             $stockService = app(StockService::class);
 
-            // 1. Opening balance: +10
             $stockService->increase([
                 'warehouse_id' => $fromWarehouse->id,
                 'item_id' => $item->id,
@@ -91,9 +89,8 @@ class InventoryFlowCheckCommand extends Command
                 'movement_date' => now()->toDateString(),
             ]);
 
-            $this->assertBalance($stockService, $fromWarehouse->id, $item->id, 10, 'Opening balance');
+            $this->assertBalance($stockService, $fromWarehouse->id, $item->id, 10, 'Opening balance +10');
 
-            // 2. Sale: -3
             $stockService->decrease([
                 'warehouse_id' => $fromWarehouse->id,
                 'item_id' => $item->id,
@@ -104,9 +101,8 @@ class InventoryFlowCheckCommand extends Command
                 'movement_date' => now()->toDateString(),
             ]);
 
-            $this->assertBalance($stockService, $fromWarehouse->id, $item->id, 7, 'Sale decrease');
+            $this->assertBalance($stockService, $fromWarehouse->id, $item->id, 7, 'Sale -3');
 
-            // 3. Prevent overselling/outgoing over available quantity
             try {
                 $stockService->decrease([
                     'warehouse_id' => $fromWarehouse->id,
@@ -118,14 +114,13 @@ class InventoryFlowCheckCommand extends Command
                     'movement_date' => now()->toDateString(),
                 ]);
 
-                throw new RuntimeException('Oversell/outgoing validation failed. System allowed quantity greater than balance.');
+                throw new RuntimeException('Outgoing over available balance was allowed. This is wrong.');
             } catch (RuntimeException $exception) {
                 $this->info('✓ Over-quantity outgoing movement correctly rejected.');
             }
 
             $this->assertBalance($stockService, $fromWarehouse->id, $item->id, 7, 'Balance after rejected outgoing');
 
-            // 4. Transfer: -2 from first warehouse, +2 to second warehouse
             $stockService->transfer([
                 'from_warehouse_id' => $fromWarehouse->id,
                 'to_warehouse_id' => $toWarehouse->id,
@@ -136,10 +131,9 @@ class InventoryFlowCheckCommand extends Command
                 'movement_date' => now()->toDateString(),
             ]);
 
-            $this->assertBalance($stockService, $fromWarehouse->id, $item->id, 5, 'Transfer out');
-            $this->assertBalance($stockService, $toWarehouse->id, $item->id, 2, 'Transfer in');
+            $this->assertBalance($stockService, $fromWarehouse->id, $item->id, 5, 'Transfer out -2');
+            $this->assertBalance($stockService, $toWarehouse->id, $item->id, 2, 'Transfer in +2');
 
-            // 5. Sales return: +1
             $stockService->increase([
                 'warehouse_id' => $fromWarehouse->id,
                 'item_id' => $item->id,
@@ -150,9 +144,8 @@ class InventoryFlowCheckCommand extends Command
                 'movement_date' => now()->toDateString(),
             ]);
 
-            $this->assertBalance($stockService, $fromWarehouse->id, $item->id, 6, 'Sales return increase');
+            $this->assertBalance($stockService, $fromWarehouse->id, $item->id, 6, 'Sales return +1');
 
-            // 6. Damaged stock: -1
             $stockService->decrease([
                 'warehouse_id' => $fromWarehouse->id,
                 'item_id' => $item->id,
@@ -163,7 +156,7 @@ class InventoryFlowCheckCommand extends Command
                 'movement_date' => now()->toDateString(),
             ]);
 
-            $this->assertBalance($stockService, $fromWarehouse->id, $item->id, 5, 'Damaged stock decrease');
+            $this->assertBalance($stockService, $fromWarehouse->id, $item->id, 5, 'Damaged stock -1');
 
             DB::rollBack();
 
@@ -188,7 +181,7 @@ class InventoryFlowCheckCommand extends Command
         $actual = $stockService->currentBalance($warehouseId, $itemId);
 
         if (abs($actual - $expected) > 0.0001) {
-            throw new RuntimeException("{$step} failed. Expected balance {$expected}, actual balance {$actual}.");
+            throw new RuntimeException("{$step} failed. Expected {$expected}, actual {$actual}.");
         }
 
         $this->info("✓ {$step}: balance = {$actual}");
