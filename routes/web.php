@@ -9,6 +9,8 @@ use App\Http\Controllers\StockCountReceiptController;
 use App\Http\Controllers\DamagedStockReceiptController;
 use App\Http\Controllers\ReceiptVoucherPrintController;
 use App\Http\Controllers\PaymentVoucherPrintController;
+use App\Http\Controllers\CustomerLedgerPrintController;
+use App\Http\Controllers\SupplierLedgerPrintController;
 
 Route::middleware(['auth'])
     ->prefix('admin/prints')
@@ -37,6 +39,12 @@ Route::middleware(['auth'])
 
         Route::get('/payment-vouchers/{paymentVoucher}/receipt', [PaymentVoucherPrintController::class, 'show'])
             ->name('payment-vouchers.receipt');
+        
+         Route::get('/customer-ledger', [CustomerLedgerPrintController::class, 'show'])
+            ->name('customer-ledger');
+
+        Route::get('/supplier-ledger', [SupplierLedgerPrintController::class, 'show'])
+            ->name('supplier-ledger');
     });
 
 Route::get('/', function () {

@@ -42,3 +42,5 @@ After adding all testing commands, run:
 ```powershell
 php artisan optimize:clear
 php artisan erp:check-all
+
+php artisan erp:check-ledgers
