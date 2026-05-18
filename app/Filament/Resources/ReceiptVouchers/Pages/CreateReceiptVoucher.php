@@ -20,6 +20,12 @@ class CreateReceiptVoucher extends CreateRecord
         $data['user_id'] = auth()->id();
         $data['status'] = ReceiptVoucher::STATUS_DRAFT;
 
+        match ($data['voucher_type'] ?? ReceiptVoucher::TYPE_CUSTOMER_COLLECTION) {
+            ReceiptVoucher::TYPE_CUSTOMER_COLLECTION => $data['party_type'] = ReceiptVoucher::PARTY_CUSTOMER,
+            ReceiptVoucher::TYPE_SUPPLIER_REFUND => $data['party_type'] = ReceiptVoucher::PARTY_SUPPLIER,
+            default => $data['party_type'] = ReceiptVoucher::PARTY_OTHER,
+        };
+
         return $data;
     }
 
@@ -29,6 +35,8 @@ class CreateReceiptVoucher extends CreateRecord
             if ($this->record->status === ReceiptVoucher::STATUS_POSTED) {
                 return;
             }
+
+            $this->record->load(['category']);
 
             $partyName = $this->resolvePartyName();
 
@@ -40,7 +48,7 @@ class CreateReceiptVoucher extends CreateRecord
                 'payment_channel' => $this->record->payment_channel,
                 'transaction_number' => $this->record->voucher_number,
                 'transaction_date' => $this->record->voucher_date,
-                'transaction_type' => TreasuryTransaction::TYPE_CUSTOMER_RECEIPT,
+                'transaction_type' => $this->resolveTransactionType(),
                 'party_type' => $this->record->party_type,
                 'party_id' => $this->record->customer_id ?? $this->record->supplier_id,
                 'party_name' => $partyName,
@@ -63,10 +71,19 @@ class CreateReceiptVoucher extends CreateRecord
 
     private function resolvePartyName(): string
     {
-        return match ($this->record->party_type) {
-            ReceiptVoucher::PARTY_CUSTOMER => Customer::find($this->record->customer_id)?->name ?? '-',
-            ReceiptVoucher::PARTY_SUPPLIER => Supplier::find($this->record->supplier_id)?->name ?? '-',
+        return match ($this->record->voucher_type) {
+            ReceiptVoucher::TYPE_CUSTOMER_COLLECTION => Customer::find($this->record->customer_id)?->name ?? '-',
+            ReceiptVoucher::TYPE_SUPPLIER_REFUND => Supplier::find($this->record->supplier_id)?->name ?? '-',
+            ReceiptVoucher::TYPE_GENERAL_INCOME => $this->record->category?->name ?? '-',
             default => $this->record->party_name ?? '-',
+        };
+    }
+
+    private function resolveTransactionType(): string
+    {
+        return match ($this->record->voucher_type) {
+            ReceiptVoucher::TYPE_GENERAL_INCOME => TreasuryTransaction::TYPE_INCOME,
+            default => TreasuryTransaction::TYPE_CUSTOMER_RECEIPT,
         };
     }
 

@@ -6,6 +6,7 @@ use App\Models\PaymentVoucher;
 use App\Models\TreasuryTransaction;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
 
 class PaymentVoucherInfolist
 {
@@ -20,6 +21,23 @@ class PaymentVoucherInfolist
                 TextEntry::make('voucher_date')
                     ->label('التاريخ')
                     ->date('Y-m-d'),
+                
+                TextEntry::make('voucher_type')
+                    ->label('نوع السند')
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'customer_collection' => 'تحصيل من عميل',
+                        'supplier_refund' => 'استرداد من مورد',
+                        'general_income' => 'إيراد عام',
+                        'supplier_payment' => 'دفعة لمورد',
+                        'customer_refund' => 'رد مبلغ لعميل',
+                        'general_expense' => 'مصروف عام',
+                        'other' => 'أخرى',
+                        default => '-',
+                    }),
+
+                TextEntry::make('category.name')
+                    ->label('البند المالي')
+                    ->placeholder('-'),
 
                 TextEntry::make('party_name')
                     ->label('الطرف')

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ReceiptVouchers\Schemas;
 
+use App\Models\FinanceCategory;
 use App\Models\ReceiptVoucher;
 use App\Models\TreasuryTransaction;
 use Filament\Forms\Components\DatePicker;
@@ -34,6 +35,24 @@ class ReceiptVoucherForm
                             ->required()
                             ->default(now()),
 
+                        Select::make('voucher_type')
+                            ->label('نوع سند القبض')
+                            ->options([
+                                ReceiptVoucher::TYPE_CUSTOMER_COLLECTION => 'تحصيل من عميل',
+                                ReceiptVoucher::TYPE_SUPPLIER_REFUND => 'استرداد من مورد',
+                                ReceiptVoucher::TYPE_GENERAL_INCOME => 'إيراد عام',
+                                ReceiptVoucher::TYPE_OTHER => 'أخرى',
+                            ])
+                            ->default(ReceiptVoucher::TYPE_CUSTOMER_COLLECTION)
+                            ->required()
+                            ->live()
+                            ->afterStateUpdated(function (Set $set): void {
+                                $set('customer_id', null);
+                                $set('supplier_id', null);
+                                $set('finance_category_id', null);
+                                $set('party_name', null);
+                            }),
+
                         Select::make('payment_channel')
                             ->label('طريقة التحصيل')
                             ->options([
@@ -64,43 +83,41 @@ class ReceiptVoucherForm
                             ->required(fn (Get $get): bool => $get('payment_channel') === TreasuryTransaction::CHANNEL_BANK)
                             ->visible(fn (Get $get): bool => $get('payment_channel') === TreasuryTransaction::CHANNEL_BANK),
 
-                        Select::make('party_type')
-                            ->label('نوع الطرف')
-                            ->options([
-                                ReceiptVoucher::PARTY_CUSTOMER => 'عميل',
-                                ReceiptVoucher::PARTY_SUPPLIER => 'مورد',
-                                ReceiptVoucher::PARTY_OTHER => 'أخرى',
-                            ])
-                            ->default(ReceiptVoucher::PARTY_CUSTOMER)
-                            ->required()
-                            ->live()
-                            ->afterStateUpdated(function (Set $set): void {
-                                $set('customer_id', null);
-                                $set('supplier_id', null);
-                                $set('party_name', null);
-                            }),
-
                         Select::make('customer_id')
                             ->label('العميل')
                             ->relationship('customer', 'name')
                             ->searchable()
                             ->preload()
-                            ->required(fn (Get $get): bool => $get('party_type') === ReceiptVoucher::PARTY_CUSTOMER)
-                            ->visible(fn (Get $get): bool => $get('party_type') === ReceiptVoucher::PARTY_CUSTOMER),
+                            ->required(fn (Get $get): bool => $get('voucher_type') === ReceiptVoucher::TYPE_CUSTOMER_COLLECTION)
+                            ->visible(fn (Get $get): bool => $get('voucher_type') === ReceiptVoucher::TYPE_CUSTOMER_COLLECTION),
 
                         Select::make('supplier_id')
                             ->label('المورد')
                             ->relationship('supplier', 'name')
                             ->searchable()
                             ->preload()
-                            ->required(fn (Get $get): bool => $get('party_type') === ReceiptVoucher::PARTY_SUPPLIER)
-                            ->visible(fn (Get $get): bool => $get('party_type') === ReceiptVoucher::PARTY_SUPPLIER),
+                            ->required(fn (Get $get): bool => $get('voucher_type') === ReceiptVoucher::TYPE_SUPPLIER_REFUND)
+                            ->visible(fn (Get $get): bool => $get('voucher_type') === ReceiptVoucher::TYPE_SUPPLIER_REFUND),
+
+                        Select::make('finance_category_id')
+                            ->label('بند الإيراد')
+                            ->relationship(
+                                name: 'category',
+                                titleAttribute: 'name',
+                                modifyQueryUsing: fn ($query) => $query
+                                    ->where('type', FinanceCategory::TYPE_INCOME)
+                                    ->where('is_active', true)
+                            )
+                            ->searchable()
+                            ->preload()
+                            ->required(fn (Get $get): bool => $get('voucher_type') === ReceiptVoucher::TYPE_GENERAL_INCOME)
+                            ->visible(fn (Get $get): bool => $get('voucher_type') === ReceiptVoucher::TYPE_GENERAL_INCOME),
 
                         TextInput::make('party_name')
                             ->label('اسم الطرف')
                             ->maxLength(255)
-                            ->required(fn (Get $get): bool => $get('party_type') === ReceiptVoucher::PARTY_OTHER)
-                            ->visible(fn (Get $get): bool => $get('party_type') === ReceiptVoucher::PARTY_OTHER),
+                            ->required(fn (Get $get): bool => $get('voucher_type') === ReceiptVoucher::TYPE_OTHER)
+                            ->visible(fn (Get $get): bool => $get('voucher_type') === ReceiptVoucher::TYPE_OTHER),
 
                         TextInput::make('amount')
                             ->label('المبلغ')

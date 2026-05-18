@@ -12,6 +12,7 @@ use Filament\Tables\Filters\SelectFilter;
 use App\Models\PaymentVoucher;
 use App\Models\TreasuryTransaction;
 use Filament\Actions\Action;
+use Filament\Infolists\Components\TextEntry;
 
 class PaymentVouchersTable
 {
@@ -30,6 +31,26 @@ class PaymentVouchersTable
                     ->label('التاريخ')
                     ->date('Y-m-d')
                     ->sortable(),
+
+                TextColumn::make('voucher_type')
+                    ->label('نوع السند')
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'customer_collection' => 'تحصيل من عميل',
+                        'supplier_refund' => 'استرداد من مورد',
+                        'general_income' => 'إيراد عام',
+                        'supplier_payment' => 'دفعة لمورد',
+                        'customer_refund' => 'رد مبلغ لعميل',
+                        'general_expense' => 'مصروف عام',
+                        'other' => 'أخرى',
+                        default => '-',
+                    })
+                    ->badge()
+                    ->sortable(),
+
+                TextColumn::make('category.name')
+                    ->label('البند المالي')
+                    ->placeholder('-')
+                    ->toggleable(),
 
                 TextColumn::make('party_name')
                     ->label('الطرف')
