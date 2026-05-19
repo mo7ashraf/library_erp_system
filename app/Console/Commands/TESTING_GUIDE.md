@@ -44,3 +44,10 @@ php artisan optimize:clear
 php artisan erp:check-all
 
 php artisan erp:check-ledgers
+
+## Financial summary integrity check
+
+Run:
+
+```powershell
+php artisan erp:check-financial-summary
