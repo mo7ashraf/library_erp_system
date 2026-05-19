@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>الملخص المالي</title>
+    <title>تقرير المبيعات</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
@@ -236,10 +236,6 @@
             font-weight: 800;
         }
 
-        .page-break {
-            page-break-before: always;
-        }
-
         @media print {
             body {
                 background: white;
@@ -271,22 +267,7 @@
 
 @php
     $money = fn ($value) => number_format((float) $value, 2) . ' ج.م';
-
-    $totalInflow = (float) ($report['total_inflow'] ?? 0);
-    $totalOutflow = (float) ($report['total_outflow'] ?? 0);
-    $netMovement = $totalInflow - $totalOutflow;
-
-    $valueClass = function (float $value): string {
-        if ($value > 0) {
-            return 'positive';
-        }
-
-        if ($value < 0) {
-            return 'negative';
-        }
-
-        return 'neutral';
-    };
+    $totals = $report['totals'] ?? [];
 @endphp
 
 <div class="print-actions">
@@ -306,7 +287,7 @@
 
             <div class="line">
                 <span class="label">نوع التقرير</span>
-                <span class="value">ملخص مالي</span>
+                <span class="value">تقرير ملخص المبيعات</span>
             </div>
 
             <div class="line">
@@ -332,190 +313,192 @@
 
     <div class="summary-grid">
         <div class="summary-card">
-            <div class="summary-label">إجمالي الداخل</div>
-            <div class="summary-value positive">{{ $money($totalInflow) }}</div>
+            <div class="summary-label">إجمالي المبيعات</div>
+            <div class="summary-value positive">{{ $money($totals['grand_total'] ?? 0) }}</div>
         </div>
 
         <div class="summary-card">
-            <div class="summary-label">إجمالي الخارج</div>
-            <div class="summary-value negative">{{ $money($totalOutflow) }}</div>
+            <div class="summary-label">عدد الفواتير</div>
+            <div class="summary-value neutral">{{ $totals['invoices_count'] ?? 0 }}</div>
         </div>
 
         <div class="summary-card">
-            <div class="summary-label">صافي الحركة</div>
-            <div class="summary-value {{ $valueClass($netMovement) }}">
-                {{ $money($netMovement) }}
-            </div>
+            <div class="summary-label">متوسط قيمة الفاتورة</div>
+            <div class="summary-value neutral">{{ $money($totals['average_invoice_value'] ?? 0) }}</div>
         </div>
 
         <div class="summary-card">
-            <div class="summary-label">إجمالي الأرصدة الحالية</div>
-            <div class="summary-value neutral">
-                {{ $money(($report['cashbox_total_balance'] ?? 0) + ($report['bank_total_balance'] ?? 0)) }}
-            </div>
+            <div class="summary-label">إجمالي الخصومات</div>
+            <div class="summary-value negative">{{ $money($totals['discount_amount'] ?? 0) }}</div>
         </div>
     </div>
 
     <div class="summary-grid">
         <div class="summary-card">
-            <div class="summary-label">داخل الخزائن</div>
-            <div class="summary-value positive">{{ $money($report['cash_inflow'] ?? 0) }}</div>
+            <div class="summary-label">إجمالي قبل الخصم</div>
+            <div class="summary-value neutral">{{ $money($totals['subtotal'] ?? 0) }}</div>
         </div>
 
         <div class="summary-card">
-            <div class="summary-label">خارج الخزائن</div>
-            <div class="summary-value negative">{{ $money($report['cash_outflow'] ?? 0) }}</div>
+            <div class="summary-label">خدمة</div>
+            <div class="summary-value neutral">{{ $money($totals['service_amount'] ?? 0) }}</div>
         </div>
 
         <div class="summary-card">
-            <div class="summary-label">داخل البنوك</div>
-            <div class="summary-value positive">{{ $money($report['bank_inflow'] ?? 0) }}</div>
+            <div class="summary-label">عمولات</div>
+            <div class="summary-value neutral">{{ $money($totals['commission_amount'] ?? 0) }}</div>
         </div>
 
         <div class="summary-card">
-            <div class="summary-label">خارج البنوك</div>
-            <div class="summary-value negative">{{ $money($report['bank_outflow'] ?? 0) }}</div>
+            <div class="summary-label">مبيعات نقدية</div>
+            <div class="summary-value positive">{{ $money($totals['cash_total'] ?? 0) }}</div>
         </div>
     </div>
 
-    <h2 class="section-title">ملخص أنواع الحركات</h2>
+    <div class="summary-grid">
+        <div class="summary-card">
+            <div class="summary-label">مبيعات آجلة</div>
+            <div class="summary-value neutral">{{ $money($totals['credit_total'] ?? 0) }}</div>
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-label">مبيعات جزئية</div>
+            <div class="summary-value neutral">{{ $money($totals['partial_total'] ?? 0) }}</div>
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-label">صافي بعد الخصم</div>
+            <div class="summary-value positive">{{ $money($totals['grand_total'] ?? 0) }}</div>
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-label">الفترة</div>
+            <div class="summary-value neutral" style="font-size: 12px;">
+                {{ $fromDate ?? '-' }} → {{ $toDate ?? '-' }}
+            </div>
+        </div>
+    </div>
+
+    <h2 class="section-title">المبيعات حسب نوع الدفع</h2>
 
     <table>
         <thead>
         <tr>
             <th style="width: 35px; text-align:center;">م</th>
-            <th>نوع الحركة</th>
-            <th>الاتجاه</th>
-            <th class="text-left">عدد الحركات</th>
+            <th>نوع الدفع</th>
+            <th class="text-left">عدد الفواتير</th>
             <th class="text-left">الإجمالي</th>
         </tr>
         </thead>
         <tbody>
-        @forelse($report['transaction_type_summary'] ?? [] as $row)
+        @forelse($report['sales_by_payment_type'] ?? [] as $row)
             <tr>
                 <td style="text-align:center; font-weight:900;">{{ $loop->iteration }}</td>
-                <td>{{ $row['transaction_type_label'] }}</td>
-                <td>
-                    <span class="{{ $row['direction'] === 'in' ? 'positive' : 'negative' }}">
-                        {{ $row['direction_label'] }}
-                    </span>
-                </td>
-                <td class="text-left">{{ $row['transactions_count'] }}</td>
-                <td class="text-left {{ $row['direction'] === 'in' ? 'positive' : 'negative' }}">
-                    {{ $money($row['total_amount']) }}
-                </td>
+                <td><span class="badge">{{ $row['payment_type_label'] }}</span></td>
+                <td class="text-left">{{ $row['invoices_count'] }}</td>
+                <td class="text-left positive">{{ $money($row['total_sales']) }}</td>
             </tr>
         @empty
             <tr>
-                <td colspan="5" style="text-align:center; padding:20px; color:#6b7280; font-weight:800;">
-                    لا توجد حركات في الفترة المحددة.
+                <td colspan="4" style="text-align:center; padding:20px; color:#6b7280; font-weight:800;">
+                    لا توجد بيانات في الفترة المحددة.
                 </td>
             </tr>
         @endforelse
         </tbody>
     </table>
 
-    <h2 class="section-title">أرصدة الخزائن</h2>
+    <h2 class="section-title">المبيعات حسب نوع السعر</h2>
 
     <table>
         <thead>
         <tr>
             <th style="width: 35px; text-align:center;">م</th>
-            <th>الخزينة</th>
-            <th>الفرع</th>
-            <th class="text-left">داخل الفترة</th>
-            <th class="text-left">خارج الفترة</th>
-            <th class="text-left">الرصيد الحالي</th>
+            <th>نوع السعر</th>
+            <th class="text-left">عدد الفواتير</th>
+            <th class="text-left">الإجمالي</th>
         </tr>
         </thead>
         <tbody>
-        @forelse($report['cashboxes'] ?? [] as $row)
+        @forelse($report['sales_by_price_type'] ?? [] as $row)
             <tr>
                 <td style="text-align:center; font-weight:900;">{{ $loop->iteration }}</td>
-                <td>{{ $row['name'] }}</td>
-                <td>{{ $row['branch_name'] }}</td>
-                <td class="text-left positive">{{ $money($row['period_in']) }}</td>
-                <td class="text-left negative">{{ $money($row['period_out']) }}</td>
-                <td class="text-left neutral">{{ $money($row['current_balance']) }}</td>
+                <td><span class="badge">{{ $row['price_type_label'] }}</span></td>
+                <td class="text-left">{{ $row['invoices_count'] }}</td>
+                <td class="text-left positive">{{ $money($row['total_sales']) }}</td>
             </tr>
         @empty
             <tr>
-                <td colspan="6" style="text-align:center; padding:20px; color:#6b7280; font-weight:800;">
-                    لا توجد خزائن.
+                <td colspan="4" style="text-align:center; padding:20px; color:#6b7280; font-weight:800;">
+                    لا توجد بيانات في الفترة المحددة.
                 </td>
             </tr>
         @endforelse
         </tbody>
     </table>
 
-    <h2 class="section-title">أرصدة البنوك</h2>
+    <h2 class="section-title">أفضل العملاء حسب المبيعات</h2>
 
     <table>
         <thead>
         <tr>
             <th style="width: 35px; text-align:center;">م</th>
-            <th>الحساب</th>
-            <th>البنك</th>
-            <th class="text-left">داخل الفترة</th>
-            <th class="text-left">خارج الفترة</th>
-            <th class="text-left">الرصيد الحالي</th>
+            <th>العميل</th>
+            <th class="text-left">عدد الفواتير</th>
+            <th class="text-left">إجمالي المبيعات</th>
         </tr>
         </thead>
         <tbody>
-        @forelse($report['bank_accounts'] ?? [] as $row)
+        @forelse($report['top_customers'] ?? [] as $row)
             <tr>
                 <td style="text-align:center; font-weight:900;">{{ $loop->iteration }}</td>
-                <td>{{ $row['account_name'] }}</td>
-                <td>{{ $row['bank_name'] }}</td>
-                <td class="text-left positive">{{ $money($row['period_in']) }}</td>
-                <td class="text-left negative">{{ $money($row['period_out']) }}</td>
-                <td class="text-left neutral">{{ $money($row['current_balance']) }}</td>
+                <td>{{ $row['customer_name'] }}</td>
+                <td class="text-left">{{ $row['invoices_count'] }}</td>
+                <td class="text-left positive">{{ $money($row['total_sales']) }}</td>
             </tr>
         @empty
             <tr>
-                <td colspan="6" style="text-align:center; padding:20px; color:#6b7280; font-weight:800;">
-                    لا توجد حسابات بنكية.
+                <td colspan="4" style="text-align:center; padding:20px; color:#6b7280; font-weight:800;">
+                    لا توجد بيانات عملاء في الفترة المحددة.
                 </td>
             </tr>
         @endforelse
         </tbody>
     </table>
 
-    <h2 class="section-title">آخر الحركات المالية</h2>
+    <h2 class="section-title">آخر فواتير المبيعات</h2>
 
     <table>
         <thead>
         <tr>
             <th style="width: 35px; text-align:center;">م</th>
             <th>التاريخ</th>
-            <th>رقم الحركة</th>
-            <th>النوع</th>
-            <th>الحساب</th>
-            <th>الاتجاه</th>
-            <th class="text-left">المبلغ</th>
+            <th>رقم الفاتورة</th>
+            <th>العميل</th>
+            <th>نوع الدفع</th>
+            <th>نوع السعر</th>
+            <th class="text-left">قبل الخصم</th>
+            <th class="text-left">الخصم</th>
+            <th class="text-left">الإجمالي</th>
         </tr>
         </thead>
         <tbody>
-        @forelse($report['latest_transactions'] ?? [] as $row)
+        @forelse($report['latest_invoices'] ?? [] as $row)
             <tr>
                 <td style="text-align:center; font-weight:900;">{{ $loop->iteration }}</td>
-                <td>{{ $row['transaction_date'] }}</td>
-                <td>{{ $row['transaction_number'] }}</td>
-                <td><span class="badge">{{ $row['transaction_type_label'] }}</span></td>
-                <td>{{ $row['account_name'] }}</td>
-                <td>
-                    <span class="{{ $row['direction'] === 'in' ? 'positive' : 'negative' }}">
-                        {{ $row['direction_label'] }}
-                    </span>
-                </td>
-                <td class="text-left {{ $row['direction'] === 'in' ? 'positive' : 'negative' }}">
-                    {{ $money($row['amount']) }}
-                </td>
+                <td>{{ $row['date'] }}</td>
+                <td><span class="badge">{{ $row['number'] }}</span></td>
+                <td>{{ $row['customer'] }}</td>
+                <td>{{ $row['payment_type'] }}</td>
+                <td>{{ $row['price_type'] }}</td>
+                <td class="text-left">{{ $money($row['subtotal']) }}</td>
+                <td class="text-left negative">{{ $money($row['discount_amount']) }}</td>
+                <td class="text-left positive">{{ $money($row['grand_total']) }}</td>
             </tr>
         @empty
             <tr>
-                <td colspan="7" style="text-align:center; padding:20px; color:#6b7280; font-weight:800;">
-                    لا توجد حركات مالية في الفترة المحددة.
+                <td colspan="9" style="text-align:center; padding:20px; color:#6b7280; font-weight:800;">
+                    لا توجد فواتير مبيعات في الفترة المحددة.
                 </td>
             </tr>
         @endforelse
