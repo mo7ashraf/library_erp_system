@@ -329,9 +329,14 @@
                                 عرض التقرير
                             </button>
 
-                            <button type="button" onclick="window.print()" class="fin-btn fin-btn-secondary">
+                            <a href="{{ route('admin.prints.financial-summary-report', [
+                                    'from_date' => $fromDate,
+                                    'to_date' => $toDate,
+                                ]) }}"
+                                target="_blank"
+                                class="fin-btn fin-btn-secondary">
                                 طباعة
-                            </button>
+                            </a>
 
                             <a href="{{ url()->current() }}" class="fin-btn fin-btn-secondary">
                                 مسح

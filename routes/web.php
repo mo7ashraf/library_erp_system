@@ -11,6 +11,7 @@ use App\Http\Controllers\ReceiptVoucherPrintController;
 use App\Http\Controllers\PaymentVoucherPrintController;
 use App\Http\Controllers\CustomerLedgerPrintController;
 use App\Http\Controllers\SupplierLedgerPrintController;
+use App\Http\Controllers\FinancialSummaryPrintController;
 
 Route::middleware(['auth'])
     ->prefix('admin/prints')
@@ -45,6 +46,9 @@ Route::middleware(['auth'])
 
         Route::get('/supplier-ledger', [SupplierLedgerPrintController::class, 'show'])
             ->name('supplier-ledger');
+
+        Route::get('/financial-summary-report', [FinancialSummaryPrintController::class, 'show'])
+            ->name('financial-summary-report');
     });
 
 Route::get('/', function () {
