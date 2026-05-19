@@ -51,3 +51,10 @@ Run:
 
 ```powershell
 php artisan erp:check-financial-summary
+
+## ERP dashboard integrity check
+
+Run:
+
+```powershell
+php artisan erp:check-dashboard
