@@ -229,6 +229,18 @@
             </div>
 
             <div class="line">
+                <span class="label">نوع السند</span>
+                <span class="value">{{ $voucher->voucherTypeLabel() }}</span>
+            </div>
+
+            @if($voucher->category)
+                <div class="line">
+                    <span class="label">البند المالي</span>
+                    <span class="value">{{ $voucher->category?->name ?? '-' }}</span>
+                </div>
+            @endif
+
+            <div class="line">
                 <span class="label">رقم الحركة المالية</span>
                 <span class="value">{{ $voucher->treasuryTransaction?->transaction_number ?? '-' }}</span>
             </div>

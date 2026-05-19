@@ -17,6 +17,7 @@ class PaymentVoucherPrintController extends Controller
             'customer',
             'supplier',
             'treasuryTransaction',
+            'category',
         ]);
 
         return view('prints.payment-voucher-receipt', [

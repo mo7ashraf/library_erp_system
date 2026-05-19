@@ -9,7 +9,6 @@ use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Filament\Infolists\Components\TextEntry;
 
 class ReceiptVouchersTable
 {
@@ -32,26 +31,23 @@ class ReceiptVouchersTable
                 TextColumn::make('voucher_type')
                     ->label('نوع السند')
                     ->formatStateUsing(fn (?string $state): string => match ($state) {
-                        'customer_collection' => 'تحصيل من عميل',
-                        'supplier_refund' => 'استرداد من مورد',
-                        'general_income' => 'إيراد عام',
-                        'supplier_payment' => 'دفعة لمورد',
-                        'customer_refund' => 'رد مبلغ لعميل',
-                        'general_expense' => 'مصروف عام',
-                        'other' => 'أخرى',
+                        ReceiptVoucher::TYPE_CUSTOMER_COLLECTION => 'تحصيل من عميل',
+                        ReceiptVoucher::TYPE_SUPPLIER_REFUND => 'استرداد من مورد',
+                        ReceiptVoucher::TYPE_GENERAL_INCOME => 'إيراد عام',
+                        ReceiptVoucher::TYPE_OTHER => 'أخرى',
                         default => '-',
                     })
                     ->badge()
                     ->sortable(),
 
+                TextColumn::make('party_name')
+                    ->label('الطرف / البند')
+                    ->searchable(),
+
                 TextColumn::make('category.name')
                     ->label('البند المالي')
                     ->placeholder('-')
                     ->toggleable(),
-
-                TextColumn::make('party_name')
-                    ->label('الطرف')
-                    ->searchable(),
 
                 TextColumn::make('payment_channel')
                     ->label('طريقة التحصيل')
@@ -83,19 +79,20 @@ class ReceiptVouchersTable
                     ->toggleable(),
             ])
             ->filters([
+                SelectFilter::make('voucher_type')
+                    ->label('نوع السند')
+                    ->options([
+                        ReceiptVoucher::TYPE_CUSTOMER_COLLECTION => 'تحصيل من عميل',
+                        ReceiptVoucher::TYPE_SUPPLIER_REFUND => 'استرداد من مورد',
+                        ReceiptVoucher::TYPE_GENERAL_INCOME => 'إيراد عام',
+                        ReceiptVoucher::TYPE_OTHER => 'أخرى',
+                    ]),
+
                 SelectFilter::make('payment_channel')
                     ->label('طريقة التحصيل')
                     ->options([
                         TreasuryTransaction::CHANNEL_CASH => 'خزينة',
                         TreasuryTransaction::CHANNEL_BANK => 'بنك',
-                    ]),
-
-                SelectFilter::make('party_type')
-                    ->label('نوع الطرف')
-                    ->options([
-                        ReceiptVoucher::PARTY_CUSTOMER => 'عميل',
-                        ReceiptVoucher::PARTY_SUPPLIER => 'مورد',
-                        ReceiptVoucher::PARTY_OTHER => 'أخرى',
                     ]),
             ])
             ->recordActions([

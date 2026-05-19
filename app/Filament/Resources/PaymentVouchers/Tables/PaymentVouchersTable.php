@@ -2,17 +2,13 @@
 
 namespace App\Filament\Resources\PaymentVouchers\Tables;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
-use Filament\Tables\Filters\SelectFilter;
 use App\Models\PaymentVoucher;
 use App\Models\TreasuryTransaction;
 use Filament\Actions\Action;
-use Filament\Infolists\Components\TextEntry;
+use Filament\Actions\ViewAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
 
 class PaymentVouchersTable
 {
@@ -35,26 +31,23 @@ class PaymentVouchersTable
                 TextColumn::make('voucher_type')
                     ->label('نوع السند')
                     ->formatStateUsing(fn (?string $state): string => match ($state) {
-                        'customer_collection' => 'تحصيل من عميل',
-                        'supplier_refund' => 'استرداد من مورد',
-                        'general_income' => 'إيراد عام',
-                        'supplier_payment' => 'دفعة لمورد',
-                        'customer_refund' => 'رد مبلغ لعميل',
-                        'general_expense' => 'مصروف عام',
-                        'other' => 'أخرى',
+                        PaymentVoucher::TYPE_SUPPLIER_PAYMENT => 'دفعة لمورد',
+                        PaymentVoucher::TYPE_CUSTOMER_REFUND => 'رد مبلغ لعميل',
+                        PaymentVoucher::TYPE_GENERAL_EXPENSE => 'مصروف عام',
+                        PaymentVoucher::TYPE_OTHER => 'أخرى',
                         default => '-',
                     })
                     ->badge()
                     ->sortable(),
 
+                TextColumn::make('party_name')
+                    ->label('الطرف / البند')
+                    ->searchable(),
+
                 TextColumn::make('category.name')
                     ->label('البند المالي')
                     ->placeholder('-')
                     ->toggleable(),
-
-                TextColumn::make('party_name')
-                    ->label('الطرف')
-                    ->searchable(),
 
                 TextColumn::make('payment_channel')
                     ->label('طريقة الصرف')
@@ -86,28 +79,29 @@ class PaymentVouchersTable
                     ->toggleable(),
             ])
             ->filters([
+                SelectFilter::make('voucher_type')
+                    ->label('نوع السند')
+                    ->options([
+                        PaymentVoucher::TYPE_SUPPLIER_PAYMENT => 'دفعة لمورد',
+                        PaymentVoucher::TYPE_CUSTOMER_REFUND => 'رد مبلغ لعميل',
+                        PaymentVoucher::TYPE_GENERAL_EXPENSE => 'مصروف عام',
+                        PaymentVoucher::TYPE_OTHER => 'أخرى',
+                    ]),
+
                 SelectFilter::make('payment_channel')
                     ->label('طريقة الصرف')
                     ->options([
                         TreasuryTransaction::CHANNEL_CASH => 'خزينة',
                         TreasuryTransaction::CHANNEL_BANK => 'بنك',
                     ]),
-
-                SelectFilter::make('party_type')
-                    ->label('نوع الطرف')
-                    ->options([
-                        PaymentVoucher::PARTY_CUSTOMER => 'عميل',
-                        PaymentVoucher::PARTY_SUPPLIER => 'مورد',
-                        PaymentVoucher::PARTY_OTHER => 'أخرى',
-                    ]),
             ])
             ->recordActions([
                 ViewAction::make()->label('عرض'),
 
                 Action::make('print_receipt')
-                ->label('طباعة')
-                ->url(fn (PaymentVoucher $record): string => route('admin.prints.payment-vouchers.receipt', $record))
-                ->openUrlInNewTab(),
+                    ->label('طباعة')
+                    ->url(fn (PaymentVoucher $record): string => route('admin.prints.payment-vouchers.receipt', $record))
+                    ->openUrlInNewTab(),
             ]);
     }
 }

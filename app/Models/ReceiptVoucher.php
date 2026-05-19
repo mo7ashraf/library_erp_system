@@ -98,4 +98,14 @@ class ReceiptVoucher extends Model
             default => $this->party_name ?? $this->category?->name ?? '-',
         };
     }
+    public function voucherTypeLabel(): string
+    {
+        return match ($this->voucher_type) {
+            self::TYPE_CUSTOMER_COLLECTION => 'تحصيل من عميل',
+            self::TYPE_SUPPLIER_REFUND => 'استرداد من مورد',
+            self::TYPE_GENERAL_INCOME => 'إيراد عام',
+            self::TYPE_OTHER => 'أخرى',
+            default => '-',
+        };
+    }
 }
