@@ -43,6 +43,10 @@ class ErpCheckAllCommand extends Command
 
         $this->line('==========================================');
 
+        $purchaseReportResult = $this->call('erp:check-purchase-report');
+
+        $this->line('==========================================');
+
         if (
             $inventoryResult !== self::SUCCESS
             || $financeResult !== self::SUCCESS
@@ -51,6 +55,7 @@ class ErpCheckAllCommand extends Command
             || $financialSummaryResult !== self::SUCCESS
             || $dashboardResult !== self::SUCCESS
             || $salesReportResult !== self::SUCCESS
+            || $purchaseReportResult !== self::SUCCESS
         ) {
             $this->error('One or more ERP checks failed.');
 

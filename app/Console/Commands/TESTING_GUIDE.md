@@ -60,3 +60,6 @@ Run:
 php artisan erp:check-dashboard
 
 php artisan erp:check-sales-report
+
+php artisan erp:check-purchase-report
+php artisan erp:check-all

@@ -13,6 +13,7 @@ use App\Http\Controllers\CustomerLedgerPrintController;
 use App\Http\Controllers\SupplierLedgerPrintController;
 use App\Http\Controllers\FinancialSummaryPrintController;
 use App\Http\Controllers\SalesSummaryPrintController;
+use App\Http\Controllers\PurchaseSummaryPrintController;
 
 Route::middleware(['auth'])
     ->prefix('admin/prints')
@@ -53,6 +54,9 @@ Route::middleware(['auth'])
         
         Route::get('/sales-summary-report', [SalesSummaryPrintController::class, 'show'])
             ->name('sales-summary-report');
+
+        Route::get('/purchase-summary-report', [PurchaseSummaryPrintController::class, 'show'])
+            ->name('purchase-summary-report');
     });
 
 Route::get('/', function () {
