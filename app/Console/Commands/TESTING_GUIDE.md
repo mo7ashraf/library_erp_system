@@ -58,3 +58,5 @@ Run:
 
 ```powershell
 php artisan erp:check-dashboard
+
+php artisan erp:check-sales-report
