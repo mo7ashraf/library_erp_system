@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>تقرير المشتريات</title>
+    <title>تقرير المخزون</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
@@ -24,7 +24,7 @@
             font-family: "Cairo", Tahoma, Arial, sans-serif;
             color: #111827;
             background: #e5e7eb;
-            font-size: 12.5px;
+            font-size: 12px;
         }
 
         body {
@@ -32,7 +32,7 @@
         }
 
         .print-actions {
-            width: 210mm;
+            width: 297mm;
             max-width: 100%;
             margin: 0 auto 12px;
             display: flex;
@@ -55,12 +55,12 @@
         }
 
         .page {
-            min-height: 210mm;
             width: 297mm;
+            min-height: 210mm;
             max-width: 100%;
             margin: 0 auto;
             background: white;
-            padding: 14mm;
+            padding: 12mm;
             border: 1px solid #d1d5db;
         }
 
@@ -157,6 +157,11 @@
             font-weight: 900;
         }
 
+        .warning {
+            color: #c2410c;
+            font-weight: 900;
+        }
+
         .neutral {
             color: #374151;
             font-weight: 900;
@@ -213,6 +218,56 @@
             white-space: nowrap;
         }
 
+        .compact-table {
+            table-layout: auto;
+            font-size: 11px;
+        }
+
+        .compact-table th,
+        .compact-table td {
+            padding: 5px 4px;
+            line-height: 1.35;
+            overflow-wrap: break-word;
+        }
+
+        .compact-table th {
+            white-space: normal;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .compact-table .col-small {
+            width: 30px;
+        }
+
+        .compact-table .col-date {
+            width: 62px;
+        }
+
+        .compact-table .col-ref {
+            width: 80px;
+        }
+
+        .compact-table .col-type {
+            width: 95px;
+        }
+
+        .compact-table .col-name {
+            width: 135px;
+        }
+
+        .compact-table .col-warehouse {
+            width: 90px;
+        }
+
+        .compact-table .col-direction {
+            width: 52px;
+        }
+
+        .compact-table .col-number {
+            width: 70px;
+        }
+
         .signatures {
             display: flex;
             justify-content: space-between;
@@ -227,49 +282,6 @@
             text-align: center;
             padding-top: 8px;
             font-weight: 800;
-        }
-
-        .wide-table {
-            table-layout: auto;
-            font-size: 11px;
-        }
-
-        .wide-table th,
-        .wide-table td {
-            padding: 5px 4px;
-            line-height: 1.35;
-            word-break: normal;
-            overflow-wrap: break-word;
-        }
-
-        .wide-table th {
-            white-space: normal;
-            text-align: center;
-            vertical-align: middle;
-        }
-
-        .wide-table .col-small {
-            width: 28px;
-        }
-
-        .wide-table .col-date {
-            width: 62px;
-        }
-
-        .wide-table .col-number {
-            width: 76px;
-        }
-
-        .wide-table .col-name {
-            width: 110px;
-        }
-
-        .wide-table .col-payment {
-            width: 55px;
-        }
-
-        .wide-table .col-money {
-            width: 74px;
         }
 
         @media print {
@@ -303,6 +315,7 @@
 
 @php
     $money = fn ($value) => number_format((float) $value, 2) . ' ج.م';
+    $number = fn ($value) => number_format((float) $value, 3);
     $totals = $report['totals'] ?? [];
 @endphp
 
@@ -313,7 +326,7 @@
 
 <div class="page">
     <div class="header">
-        <h1>تقرير المشتريات</h1>
+        <h1>تقرير المخزون</h1>
         <div class="subtitle">نظام إدارة المكتبة</div>
     </div>
 
@@ -323,7 +336,7 @@
 
             <div class="line">
                 <span class="label">نوع التقرير</span>
-                <span class="value">تقرير ملخص المشتريات</span>
+                <span class="value">تقرير ملخص المخزون</span>
             </div>
 
             <div class="line">
@@ -349,172 +362,248 @@
 
     <div class="summary-grid">
         <div class="summary-card">
-            <div class="summary-label">إجمالي المشتريات</div>
-            <div class="summary-value negative">{{ $money($totals['grand_total'] ?? 0) }}</div>
+            <div class="summary-label">قيمة المخزون الحالية</div>
+            <div class="summary-value positive">{{ $money($totals['total_value'] ?? 0) }}</div>
         </div>
 
         <div class="summary-card">
-            <div class="summary-label">عدد الفواتير</div>
-            <div class="summary-value neutral">{{ $totals['invoices_count'] ?? 0 }}</div>
+            <div class="summary-label">إجمالي الكمية</div>
+            <div class="summary-value neutral">{{ $number($totals['total_quantity'] ?? 0) }}</div>
         </div>
 
         <div class="summary-card">
-            <div class="summary-label">متوسط قيمة الفاتورة</div>
-            <div class="summary-value neutral">{{ $money($totals['average_invoice_value'] ?? 0) }}</div>
+            <div class="summary-label">أصناف لها رصيد</div>
+            <div class="summary-value neutral">{{ $totals['items_with_stock_count'] ?? 0 }}</div>
         </div>
 
         <div class="summary-card">
-            <div class="summary-label">إجمالي الخصومات</div>
-            <div class="summary-value positive">{{ $money($totals['discount_amount'] ?? 0) }}</div>
+            <div class="summary-label">مخازن بها أرصدة</div>
+            <div class="summary-value neutral">{{ $totals['warehouses_count'] ?? 0 }}</div>
         </div>
     </div>
 
     <div class="summary-grid">
         <div class="summary-card">
-            <div class="summary-label">إجمالي قبل الخصم</div>
-            <div class="summary-value neutral">{{ $money($totals['subtotal'] ?? 0) }}</div>
+            <div class="summary-label">أصناف رصيدها صفر</div>
+            <div class="summary-value negative">{{ $totals['zero_stock_items_count'] ?? 0 }}</div>
         </div>
 
         <div class="summary-card">
-            <div class="summary-label">تكاليف إضافية</div>
-            <div class="summary-value negative">{{ $money($totals['additional_cost'] ?? 0) }}</div>
+            <div class="summary-label">أصناف تحت حد الطلب</div>
+            <div class="summary-value warning">{{ $totals['low_stock_items_count'] ?? 0 }}</div>
         </div>
 
         <div class="summary-card">
-            <div class="summary-label">مشتريات نقدية</div>
-            <div class="summary-value negative">{{ $money($totals['cash_total'] ?? 0) }}</div>
+            <div class="summary-label">الفترة من</div>
+            <div class="summary-value neutral" style="font-size: 12px;">{{ $fromDate ?? '-' }}</div>
         </div>
 
         <div class="summary-card">
-            <div class="summary-label">مشتريات آجلة</div>
-            <div class="summary-value neutral">{{ $money($totals['credit_total'] ?? 0) }}</div>
+            <div class="summary-label">الفترة إلى</div>
+            <div class="summary-value neutral" style="font-size: 12px;">{{ $toDate ?? '-' }}</div>
         </div>
     </div>
 
-    <h2 class="section-title">المشتريات حسب نوع الدفع</h2>
-
-    <table>
-        <thead>
-        <tr>
-            <th style="width: 35px; text-align:center;">م</th>
-            <th>نوع الدفع</th>
-            <th class="text-left">عدد الفواتير</th>
-            <th class="text-left">الإجمالي</th>
-        </tr>
-        </thead>
-        <tbody>
-        @forelse($report['purchases_by_payment_type'] ?? [] as $row)
-            <tr>
-                <td style="text-align:center; font-weight:900;">{{ $loop->iteration }}</td>
-                <td><span class="badge">{{ $row['payment_type_label'] }}</span></td>
-                <td class="text-left">{{ $row['invoices_count'] }}</td>
-                <td class="text-left negative">{{ $money($row['total_purchases']) }}</td>
-            </tr>
-        @empty
-            <tr>
-                <td colspan="4" style="text-align:center; padding:20px; color:#6b7280; font-weight:800;">
-                    لا توجد بيانات في الفترة المحددة.
-                </td>
-            </tr>
-        @endforelse
-        </tbody>
-    </table>
-
-    <h2 class="section-title">المشتريات حسب المخزن</h2>
+    <h2 class="section-title">الأرصدة حسب المخزن</h2>
 
     <table>
         <thead>
         <tr>
             <th style="width: 35px; text-align:center;">م</th>
             <th>المخزن</th>
-            <th class="text-left">عدد الفواتير</th>
-            <th class="text-left">الإجمالي</th>
+            <th class="text-left">عدد الأصناف</th>
+            <th class="text-left">إجمالي الكمية</th>
+            <th class="text-left">القيمة</th>
         </tr>
         </thead>
         <tbody>
-        @forelse($report['purchases_by_warehouse'] ?? [] as $row)
+        @forelse($report['balances_by_warehouse'] ?? [] as $row)
             <tr>
                 <td style="text-align:center; font-weight:900;">{{ $loop->iteration }}</td>
                 <td>{{ $row['warehouse_name'] }}</td>
-                <td class="text-left">{{ $row['invoices_count'] }}</td>
-                <td class="text-left negative">{{ $money($row['total_purchases']) }}</td>
+                <td class="text-left">{{ $row['items_count'] }}</td>
+                <td class="text-left">{{ $number($row['total_quantity']) }}</td>
+                <td class="text-left positive">{{ $money($row['total_value']) }}</td>
             </tr>
         @empty
             <tr>
-                <td colspan="4" style="text-align:center; padding:20px; color:#6b7280; font-weight:800;">
-                    لا توجد بيانات مخازن في الفترة المحددة.
+                <td colspan="5" style="text-align:center; padding:20px; color:#6b7280; font-weight:800;">
+                    لا توجد أرصدة مخزون.
                 </td>
             </tr>
         @endforelse
         </tbody>
     </table>
 
-    <h2 class="section-title">أفضل الموردين حسب المشتريات</h2>
+    <h2 class="section-title">أعلى الأصناف قيمة</h2>
 
     <table>
         <thead>
         <tr>
             <th style="width: 35px; text-align:center;">م</th>
-            <th>المورد</th>
-            <th class="text-left">عدد الفواتير</th>
-            <th class="text-left">إجمالي المشتريات</th>
+            <th>الكود</th>
+            <th>الصنف</th>
+            <th class="text-left">الكمية</th>
+            <th class="text-left">القيمة</th>
         </tr>
         </thead>
         <tbody>
-        @forelse($report['top_suppliers'] ?? [] as $row)
+        @forelse($report['top_value_items'] ?? [] as $row)
             <tr>
                 <td style="text-align:center; font-weight:900;">{{ $loop->iteration }}</td>
-                <td>{{ $row['supplier_name'] }}</td>
-                <td class="text-left">{{ $row['invoices_count'] }}</td>
-                <td class="text-left negative">{{ $money($row['total_purchases']) }}</td>
+                <td><span class="badge">{{ $row['item_code'] }}</span></td>
+                <td>{{ $row['item_name'] }}</td>
+                <td class="text-left">{{ $number($row['total_quantity']) }}</td>
+                <td class="text-left positive">{{ $money($row['total_value']) }}</td>
             </tr>
         @empty
             <tr>
-                <td colspan="4" style="text-align:center; padding:20px; color:#6b7280; font-weight:800;">
-                    لا توجد بيانات موردين في الفترة المحددة.
+                <td colspan="5" style="text-align:center; padding:20px; color:#6b7280; font-weight:800;">
+                    لا توجد أصناف لها قيمة مخزون.
                 </td>
             </tr>
         @endforelse
         </tbody>
     </table>
 
-    <h2 class="section-title">آخر فواتير المشتريات</h2>
+    <h2 class="section-title">أصناف تحت حد الطلب</h2>
 
-    <table class="wide-table">
+    <table>
+        <thead>
+        <tr>
+            <th style="width: 35px; text-align:center;">م</th>
+            <th>الكود</th>
+            <th>الصنف</th>
+            <th class="text-left">الرصيد</th>
+            <th class="text-left">حد الطلب</th>
+        </tr>
+        </thead>
+        <tbody>
+        @forelse($report['low_stock_items'] ?? [] as $row)
+            <tr>
+                <td style="text-align:center; font-weight:900;">{{ $loop->iteration }}</td>
+                <td><span class="badge">{{ $row['item_code'] }}</span></td>
+                <td>{{ $row['item_name'] }}</td>
+                <td class="text-left warning">{{ $number($row['stock_quantity']) }}</td>
+                <td class="text-left">{{ $number($row['threshold']) }}</td>
+            </tr>
+        @empty
+            <tr>
+                <td colspan="5" style="text-align:center; padding:20px; color:#6b7280; font-weight:800;">
+                    لا توجد أصناف تحت حد الطلب.
+                </td>
+            </tr>
+        @endforelse
+        </tbody>
+    </table>
+
+    <h2 class="section-title">أصناف رصيدها صفر</h2>
+
+    <table>
+        <thead>
+        <tr>
+            <th style="width: 35px; text-align:center;">م</th>
+            <th>الكود</th>
+            <th>الصنف</th>
+            <th class="text-left">الرصيد</th>
+            <th class="text-left">حد الطلب</th>
+        </tr>
+        </thead>
+        <tbody>
+        @forelse($report['zero_stock_items'] ?? [] as $row)
+            <tr>
+                <td style="text-align:center; font-weight:900;">{{ $loop->iteration }}</td>
+                <td><span class="badge">{{ $row['item_code'] }}</span></td>
+                <td>{{ $row['item_name'] }}</td>
+                <td class="text-left negative">{{ $number($row['stock_quantity']) }}</td>
+                <td class="text-left">{{ $number($row['reorder_level']) }}</td>
+            </tr>
+        @empty
+            <tr>
+                <td colspan="5" style="text-align:center; padding:20px; color:#6b7280; font-weight:800;">
+                    لا توجد أصناف رصيدها صفر.
+                </td>
+            </tr>
+        @endforelse
+        </tbody>
+    </table>
+
+    <h2 class="section-title">ملخص حركة المخزون</h2>
+
+    <table>
+        <thead>
+        <tr>
+            <th style="width: 35px; text-align:center;">م</th>
+            <th>نوع الحركة</th>
+            <th>الاتجاه</th>
+            <th class="text-left">عدد الحركات</th>
+            <th class="text-left">الكمية</th>
+            <th class="text-left">القيمة</th>
+        </tr>
+        </thead>
+        <tbody>
+        @forelse($report['movement_summary'] ?? [] as $row)
+            <tr>
+                <td style="text-align:center; font-weight:900;">{{ $loop->iteration }}</td>
+                <td>{{ $row['movement_type_label'] }}</td>
+                <td>
+                    <span class="{{ $row['direction'] === 'in' ? 'positive' : 'negative' }}">
+                        {{ $row['direction_label'] }}
+                    </span>
+                </td>
+                <td class="text-left">{{ $row['movements_count'] }}</td>
+                <td class="text-left">{{ $number($row['total_quantity']) }}</td>
+                <td class="text-left">{{ $money($row['total_cost']) }}</td>
+            </tr>
+        @empty
+            <tr>
+                <td colspan="6" style="text-align:center; padding:20px; color:#6b7280; font-weight:800;">
+                    لا توجد حركات مخزون خلال الفترة.
+                </td>
+            </tr>
+        @endforelse
+        </tbody>
+    </table>
+
+    <h2 class="section-title">آخر حركات المخزون</h2>
+
+    <table class="compact-table">
         <thead>
         <tr>
             <th class="col-small">م</th>
             <th class="col-date">التاريخ</th>
-            <th class="col-number">رقم الفاتورة</th>
-            <th class="col-number">فاتورة المورد</th>
-            <th class="col-name">المورد</th>
-            <th class="col-name">المخزن</th>
-            <th class="col-payment">الدفع</th>
-            <th class="col-money text-left">قبل الخصم</th>
-            <th class="col-money text-left">الخصم</th>
-            <th class="col-money text-left">إضافي</th>
-            <th class="col-money text-left">الإجمالي</th>
+            <th class="col-ref">المرجع</th>
+            <th class="col-type">نوع الحركة</th>
+            <th class="col-name">الصنف</th>
+            <th class="col-warehouse">المخزن</th>
+            <th class="col-direction">الاتجاه</th>
+            <th class="col-number text-left">الكمية</th>
+            <th class="col-number text-left">القيمة</th>
+            <th class="col-number text-left">الرصيد بعد</th>
         </tr>
         </thead>
         <tbody>
-        @forelse($report['latest_invoices'] ?? [] as $row)
+        @forelse($report['latest_movements'] ?? [] as $row)
             <tr>
                 <td style="text-align:center; font-weight:900;">{{ $loop->iteration }}</td>
                 <td>{{ $row['date'] }}</td>
-                <td><span class="badge">{{ $row['number'] }}</span></td>
-                <td>{{ $row['supplier_invoice_number'] }}</td>
-                <td>{{ $row['supplier'] }}</td>
+                <td>{{ $row['reference_number'] }}</td>
+                <td><span class="badge">{{ $row['movement_type'] }}</span></td>
+                <td>{{ $row['item'] }}</td>
                 <td>{{ $row['warehouse'] }}</td>
-                <td>{{ $row['payment_type'] }}</td>
-                <td class="text-left">{{ $money($row['subtotal']) }}</td>
-                <td class="text-left positive">{{ $money($row['discount_amount']) }}</td>
-                <td class="text-left negative">{{ $money($row['additional_cost']) }}</td>
-                <td class="text-left negative">{{ $money($row['grand_total']) }}</td>
+                <td>
+                    <span class="{{ $row['direction'] === 'in' ? 'positive' : 'negative' }}">
+                        {{ $row['direction_label'] }}
+                    </span>
+                </td>
+                <td class="text-left">{{ $number($row['quantity']) }}</td>
+                <td class="text-left">{{ $money($row['total_cost']) }}</td>
+                <td class="text-left">{{ $number($row['balance_after']) }}</td>
             </tr>
         @empty
             <tr>
-                <td colspan="11" style="text-align:center; padding:20px; color:#6b7280; font-weight:800;">
-                    لا توجد فواتير مشتريات في الفترة المحددة.
+                <td colspan="10" style="text-align:center; padding:20px; color:#6b7280; font-weight:800;">
+                    لا توجد حركات مخزون خلال الفترة.
                 </td>
             </tr>
         @endforelse
@@ -522,7 +611,7 @@
     </table>
 
     <div class="signatures">
-        <div class="signature">المحاسب</div>
+        <div class="signature">أمين المخزن</div>
         <div class="signature">المراجع</div>
         <div class="signature">اعتماد المسؤول</div>
     </div>

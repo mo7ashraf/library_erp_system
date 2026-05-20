@@ -61,6 +61,7 @@ Route::middleware(['auth'])
 
         Route::get('/inventory-summary-report', [InventorySummaryPrintController::class, 'show'])
             ->name('inventory-summary-report');
+            
     });
 
 Route::get('/', function () {
