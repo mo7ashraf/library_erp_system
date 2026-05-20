@@ -17,6 +17,7 @@ use App\Http\Controllers\PurchaseSummaryPrintController;
 use App\Http\Controllers\InventorySummaryPrintController;
 use App\Http\Controllers\CustomerBalancePrintController;
 use App\Http\Controllers\SupplierBalancePrintController;
+use App\Http\Controllers\PostedDocumentsPrintController;
 
 Route::middleware(['auth'])
     ->prefix('admin/prints')
@@ -70,6 +71,8 @@ Route::middleware(['auth'])
         Route::get('/supplier-balance-report', [SupplierBalancePrintController::class, 'show'])
             ->name('supplier-balance-report');
             
+        Route::get('/posted-documents-report', [PostedDocumentsPrintController::class, 'show'])
+            ->name('posted-documents-report');
     });
 
 Route::get('/', function () {
