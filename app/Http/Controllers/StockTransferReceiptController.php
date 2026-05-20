@@ -2,25 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PurchaseReturn;
+use App\Models\StockTransfer;
 use Illuminate\View\View;
 
-class PurchaseReturnReceiptController extends Controller
+class StockTransferReceiptController extends Controller
 {
-    public function show(PurchaseReturn $purchaseReturn): View
+    public function show(StockTransfer $stockTransfer): View
     {
-        $purchaseReturn->load([
-            'purchaseInvoice',
-            'supplier',
-            'warehouse.branch',
-            'branch',
+        $stockTransfer->load([
+            'fromWarehouse',
+            'toWarehouse',
+            'fromBranch',
+            'toBranch',
             'user',
             'items.item',
             'items.unit',
         ]);
 
-        return view('prints.purchase-return-receipt', [
-            'return' => $purchaseReturn,
+        return view('prints.stock-transfer-receipt', [
+            'transfer' => $stockTransfer,
         ]);
     }
 }
