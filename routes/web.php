@@ -19,6 +19,14 @@ use App\Http\Controllers\CustomerBalancePrintController;
 use App\Http\Controllers\SupplierBalancePrintController;
 use App\Http\Controllers\PostedDocumentsPrintController;
 
+Route::get('/login', function () {
+    if (Route::has('filament.admin.auth.login')) {
+        return redirect()->route('filament.admin.auth.login');
+    }
+
+    return redirect('/admin/login');
+})->name('login');
+
 Route::middleware(['auth'])
     ->prefix('admin/prints')
     ->name('admin.prints.')
