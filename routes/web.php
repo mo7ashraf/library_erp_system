@@ -14,6 +14,7 @@ use App\Http\Controllers\SupplierLedgerPrintController;
 use App\Http\Controllers\FinancialSummaryPrintController;
 use App\Http\Controllers\SalesSummaryPrintController;
 use App\Http\Controllers\PurchaseSummaryPrintController;
+use App\Http\Controllers\InventorySummaryPrintController;
 
 Route::middleware(['auth'])
     ->prefix('admin/prints')
@@ -57,6 +58,9 @@ Route::middleware(['auth'])
 
         Route::get('/purchase-summary-report', [PurchaseSummaryPrintController::class, 'show'])
             ->name('purchase-summary-report');
+
+        Route::get('/inventory-summary-report', [InventorySummaryPrintController::class, 'show'])
+            ->name('inventory-summary-report');
     });
 
 Route::get('/', function () {
