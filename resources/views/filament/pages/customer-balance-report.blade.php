@@ -3,7 +3,10 @@
         'report' => $report,
         'fromDate' => $fromDate,
         'toDate' => $toDate,
-        'printRoute' => null,
+        'printRoute' => route('admin.prints.customer-balance-report', [
+            'from_date' => $fromDate,
+            'to_date' => $toDate,
+        ]),
         'partyLabel' => 'العميل',
         'partyPluralLabel' => 'العملاء',
     ])

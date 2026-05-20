@@ -65,3 +65,7 @@ php artisan erp:check-purchase-report
 php artisan erp:check-all
 
 php artisan erp:check-inventory-report
+
+php artisan erp:check-party-balance-reports
+php artisan erp:check-party-balance-reports --from=2026-05-01 --to=2026-05-31
+php artisan erp:check-all
