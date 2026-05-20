@@ -228,8 +228,3 @@ php artisan erp:check-release-readiness
 ```
 ولو كله تمام:
 php artisan erp:check-release-readiness --run-checks
-5. Commit
-git status
-git add .
-git commit -m "Add UI standard and V1 release plan"
-git push origin main
