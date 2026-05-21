@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>مرتجع مشتريات - {{ $return->return_number }}</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <style>
         @page { size: A4 portrait; margin: 12mm; }

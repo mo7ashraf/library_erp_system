@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>كشف حساب عميل - {{ $ledger['party_name'] ?? '-' }}</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <style>
         @page {

@@ -26,7 +26,17 @@ class ReleaseReadinessCheckCommand extends Command
         $this->checkPrintViews();
         $this->checkServices();
         $this->checkCommands();
+        $this->line('------------------------------------------');
+        $this->info('Running offline assets check...');
 
+        $offlineAssetsResult = $this->call('erp:check-offline-assets');
+
+        if ($offlineAssetsResult !== self::SUCCESS) {
+            $this->errors++;
+            $this->error('✗ erp:check-offline-assets failed.');
+        } else {
+            $this->line('✓ erp:check-offline-assets passed.');
+        }
         if ($this->option('run-checks')) {
             $this->line('------------------------------------------');
             $this->info('Running full ERP integrity checks...');
@@ -175,6 +185,7 @@ class ReleaseReadinessCheckCommand extends Command
             'erp:check-inventory-report',
             'erp:check-party-balance-reports',
             'erp:check-posted-documents-report',
+            'erp:check-offline-assets',
             'erp:check-all',
         ];
 
