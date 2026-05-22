@@ -4,8 +4,32 @@
     <meta charset="UTF-8">
     <title>تقرير المبيعات</title>
 
+    <x-erp.print-page-styles orientation="landscape" />
+    <style>
+        .sales-latest-invoices-table .col-small {
+            width: 30px;
+        }
 
-    <x-erp.print-page-styles orientation="portrait" />
+        .sales-latest-invoices-table .col-date {
+            width: 65px;
+        }
+
+        .sales-latest-invoices-table .col-number {
+            width: 85px;
+        }
+
+        .sales-latest-invoices-table .col-customer {
+            width: 130px;
+        }
+
+        .sales-latest-invoices-table .col-type {
+            width: 70px;
+        }
+
+        .sales-latest-invoices-table .col-money {
+            width: 75px;
+        }
+    </style>
 </head>
 <body>
 
@@ -212,18 +236,18 @@
 
     <h2 class="erp-print-section-title">آخر فواتير المبيعات</h2>
 
-    <table class="erp-print-table">
+    <table class="erp-print-table erp-print-compact-table sales-latest-invoices-table">
         <thead>
         <tr>
-            <th style="width: 35px; text-align:center;">م</th>
-            <th>التاريخ</th>
-            <th>رقم الفاتورة</th>
-            <th>العميل</th>
-            <th>نوع الدفع</th>
-            <th>نوع السعر</th>
-            <th class="erp-print-text-left">قبل الخصم</th>
-            <th class="erp-print-text-left">الخصم</th>
-            <th class="erp-print-text-left">الإجمالي</th>
+            <th class="col-small">م</th>
+            <th class="col-date">التاريخ</th>
+            <th class="col-number">رقم الفاتورة</th>
+            <th class="col-customer">العميل</th>
+            <th class="col-type">نوع الدفع</th>
+            <th class="col-type">نوع السعر</th>
+            <th class="col-money erp-print-text-left">قبل الخصم</th>
+            <th class="col-money erp-print-text-left">الخصم</th>
+            <th class="col-money erp-print-text-left">الإجمالي</th>
         </tr>
         </thead>
         <tbody>

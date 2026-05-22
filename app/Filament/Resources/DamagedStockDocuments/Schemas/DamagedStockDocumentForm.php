@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\DamagedStockDocuments\Schemas;
 
 use App\Models\DamagedStockDocument;
+use App\Models\Item;
 use App\Models\WarehouseItemBalance;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
@@ -14,7 +15,6 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
-use Illuminate\Validation\Rules\Numeric;
 
 class DamagedStockDocumentForm
 {
@@ -36,6 +36,39 @@ class DamagedStockDocumentForm
             'quantity' => (float) ($balance?->quantity ?? 0),
             'average_cost' => (float) ($balance?->average_cost ?? 0),
         ];
+    }
+
+    private static function availableItemsForWarehouse(?int $warehouseId): array
+    {
+        if (! $warehouseId) {
+            return [];
+        }
+
+        return WarehouseItemBalance::query()
+            ->with('item')
+            ->where('warehouse_id', $warehouseId)
+            ->where('quantity', '>', 0)
+            ->get()
+            ->filter(fn (WarehouseItemBalance $balance): bool => filled($balance->item))
+            ->mapWithKeys(function (WarehouseItemBalance $balance): array {
+                return [
+                    $balance->item_id => ($balance->item?->name ?? 'صنف غير معروف')
+                        . ' — المتاح: '
+                        . number_format((float) $balance->quantity, 3),
+                ];
+            })
+            ->toArray();
+    }
+
+    private static function itemDefaultUnitId(?int $itemId): ?int
+    {
+        if (! $itemId) {
+            return null;
+        }
+
+        return Item::query()
+            ->whereKey($itemId)
+            ->value('base_unit_id');
     }
 
     public static function configure(Schema $schema): Schema
@@ -91,7 +124,7 @@ class DamagedStockDocumentForm
                             ->relationship('items')
                             ->columns(6)
                             ->schema([
-                                 Hidden::make('unit_cost'),
+                                Hidden::make('unit_cost'),
 
                                 TextInput::make('available_quantity')
                                     ->label('الرصيد المتاح')
@@ -102,9 +135,10 @@ class DamagedStockDocumentForm
 
                                 Select::make('item_id')
                                     ->label('الصنف')
-                                    ->relationship('item', 'name')
+                                    ->options(fn (Get $get): array => self::availableItemsForWarehouse(
+                                        $get('../../warehouse_id'),
+                                    ))
                                     ->searchable()
-                                    ->preload()
                                     ->required()
                                     ->live()
                                     ->columnSpan(2)
@@ -112,6 +146,7 @@ class DamagedStockDocumentForm
                                         $warehouseId = $get('../../warehouse_id');
                                         $balance = self::getCurrentBalance($warehouseId, $state);
 
+                                        $set('unit_id', self::itemDefaultUnitId($state));
                                         $set('available_quantity', $balance['quantity']);
                                         $set('unit_cost', $balance['average_cost']);
                                         $set('quantity', null);
@@ -132,13 +167,18 @@ class DamagedStockDocumentForm
                                     ->label('الوحدة')
                                     ->relationship('unit', 'name')
                                     ->searchable()
-                                    ->preload(),
+                                    ->preload()
+                                    ->required(),
 
                                 TextInput::make('quantity')
                                     ->label('الكمية')
                                     ->numeric()
                                     ->required()
                                     ->minValue(0.001)
+                                    ->maxValue(fn (Get $get): float => self::getCurrentBalance(
+                                        $get('../../warehouse_id'),
+                                        $get('item_id'),
+                                    )['quantity'])
                                     ->helperText(fn (Get $get): string => 'الحد الأقصى المسموح: ' . number_format(
                                         self::getCurrentBalance(
                                             $get('../../warehouse_id'),

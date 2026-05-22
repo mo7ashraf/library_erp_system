@@ -5,6 +5,7 @@ namespace App\Filament\Resources\ReceiptVouchers\Schemas;
 use App\Models\FinanceCategory;
 use App\Models\ReceiptVoucher;
 use App\Models\TreasuryTransaction;
+use App\Services\Finance\PartyLedgerService;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -16,6 +17,36 @@ use Filament\Schemas\Schema;
 
 class ReceiptVoucherForm
 {
+    private static function customerBalanceLabel(?int $customerId): string
+    {
+        if (! $customerId) {
+            return 'اختر العميل لعرض الرصيد.';
+        }
+
+        try {
+            $ledger = app(PartyLedgerService::class)->customerLedger($customerId);
+
+            return 'الرصيد الحالي: ' . ($ledger['closing_balance_label'] ?? '0.00');
+        } catch (\Throwable) {
+            return 'تعذر تحميل رصيد العميل.';
+        }
+    }
+
+    private static function supplierBalanceLabel(?int $supplierId): string
+    {
+        if (! $supplierId) {
+            return 'اختر المورد لعرض الرصيد.';
+        }
+
+        try {
+            $ledger = app(PartyLedgerService::class)->supplierLedger($supplierId);
+
+            return 'الرصيد الحالي: ' . ($ledger['closing_balance_label'] ?? '0.00');
+        } catch (\Throwable) {
+            return 'تعذر تحميل رصيد المورد.';
+        }
+    }
+
     public static function configure(Schema $schema): Schema
     {
         return $schema
@@ -88,16 +119,20 @@ class ReceiptVoucherForm
                             ->relationship('customer', 'name')
                             ->searchable()
                             ->preload()
+                            ->live()
                             ->required(fn (Get $get): bool => $get('voucher_type') === ReceiptVoucher::TYPE_CUSTOMER_COLLECTION)
-                            ->visible(fn (Get $get): bool => $get('voucher_type') === ReceiptVoucher::TYPE_CUSTOMER_COLLECTION),
-
-                        Select::make('supplier_id')
+                            ->visible(fn (Get $get): bool => $get('voucher_type') === ReceiptVoucher::TYPE_CUSTOMER_COLLECTION)
+                            ->helperText(fn (Get $get): string => self::customerBalanceLabel($get('customer_id'))),
+                            
+                       Select::make('supplier_id')
                             ->label('المورد')
                             ->relationship('supplier', 'name')
                             ->searchable()
                             ->preload()
+                            ->live()
                             ->required(fn (Get $get): bool => $get('voucher_type') === ReceiptVoucher::TYPE_SUPPLIER_REFUND)
-                            ->visible(fn (Get $get): bool => $get('voucher_type') === ReceiptVoucher::TYPE_SUPPLIER_REFUND),
+                            ->visible(fn (Get $get): bool => $get('voucher_type') === ReceiptVoucher::TYPE_SUPPLIER_REFUND)
+                            ->helperText(fn (Get $get): string => self::supplierBalanceLabel($get('supplier_id'))),
 
                         Select::make('finance_category_id')
                             ->label('بند الإيراد')

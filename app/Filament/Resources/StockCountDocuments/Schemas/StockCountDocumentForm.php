@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\StockCountDocuments\Schemas;
 
+use App\Models\Item;
 use App\Models\WarehouseItemBalance;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
@@ -34,6 +35,39 @@ class StockCountDocumentForm
             'quantity' => (float) ($balance?->quantity ?? 0),
             'average_cost' => (float) ($balance?->average_cost ?? 0),
         ];
+    }
+
+    private static function availableItemsForWarehouse(?int $warehouseId): array
+    {
+        if (! $warehouseId) {
+            return [];
+        }
+
+        return WarehouseItemBalance::query()
+            ->with('item')
+            ->where('warehouse_id', $warehouseId)
+            ->where('quantity', '>', 0)
+            ->get()
+            ->filter(fn (WarehouseItemBalance $balance): bool => filled($balance->item))
+            ->mapWithKeys(function (WarehouseItemBalance $balance): array {
+                return [
+                    $balance->item_id => ($balance->item?->name ?? 'صنف غير معروف')
+                        . ' — الرصيد النظامي: '
+                        . number_format((float) $balance->quantity, 3),
+                ];
+            })
+            ->toArray();
+    }
+
+    private static function itemDefaultUnitId(?int $itemId): ?int
+    {
+        if (! $itemId) {
+            return null;
+        }
+
+        return Item::query()
+            ->whereKey($itemId)
+            ->value('base_unit_id');
     }
 
     public static function configure(Schema $schema): Schema
@@ -83,9 +117,10 @@ class StockCountDocumentForm
 
                                 Select::make('item_id')
                                     ->label('الصنف')
-                                    ->relationship('item', 'name')
+                                    ->options(fn (Get $get): array => self::availableItemsForWarehouse(
+                                        $get('../../warehouse_id'),
+                                    ))
                                     ->searchable()
-                                    ->preload()
                                     ->required()
                                     ->live()
                                     ->columnSpan(2)
@@ -93,6 +128,7 @@ class StockCountDocumentForm
                                         $warehouseId = $get('../../warehouse_id');
                                         $balance = self::getCurrentBalance($warehouseId, $state);
 
+                                        $set('unit_id', self::itemDefaultUnitId($state));
                                         $set('system_quantity', $balance['quantity']);
                                         $set('unit_cost', $balance['average_cost']);
                                         $set('actual_quantity', $balance['quantity']);
@@ -113,7 +149,8 @@ class StockCountDocumentForm
                                     ->label('الوحدة')
                                     ->relationship('unit', 'name')
                                     ->searchable()
-                                    ->preload(),
+                                    ->preload()
+                                    ->required(),
 
                                 TextInput::make('actual_quantity')
                                     ->label('الكمية الفعلية')
