@@ -2,6 +2,8 @@
 
 A Laravel-based ERP system for managing library operations, inventory, sales, purchases, treasury transactions, reporting, and printable documents.
 
+Purchase Invoice → Sales Invoice → Sales Return → Purchase Return → Stock Transfer → Stock Count → Damaged Stock → Receipt Voucher → Payment Voucher → Reports
+
 ## Technology Stack
 
 - PHP 8.3+

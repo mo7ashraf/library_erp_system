@@ -6,6 +6,7 @@
 
 
     <style>
+        <x-erp.local-cairo-font />
         @page { size: A4 portrait; margin: 12mm; }
 
         * { box-sizing: border-box; }

@@ -207,11 +207,13 @@ class SalesReturnForm
                                     ->validationAttribute('الكمية المرتجعة'),
 
                                 TextInput::make('unit_price')
-                                    ->label('سعر البيع')
+                                    ->label('سعر البيع الأصلي')
                                     ->numeric()
                                     ->required()
-                                    ->default(0)
-                                    ->prefix('ج.م'),
+                                    ->disabled()
+                                    ->dehydrated()
+                                    ->prefix('ج.م')
+                                    ->helperText('يتم تحميل السعر من فاتورة البيع الأصلية ولا يتم تعديله يدويًا.'),
 
                                 TextInput::make('discount_percent')
                                     ->label('خصم %')

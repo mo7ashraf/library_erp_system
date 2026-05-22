@@ -35,7 +35,9 @@ class WarehouseForm
                     ->autofocus(),
 
                 TextInput::make('account_code')
-                    ->label('الحساب في الشجرة')
+                    ->label('كود حساب المخزون')
+                    ->placeholder('مثال: INV-001 أو 1301')
+                    ->helperText('اختياري: يستخدم كمرجع للحساب المحاسبي الخاص بالمخزن.')
                     ->maxLength(255),
 
                 Toggle::make('is_active')

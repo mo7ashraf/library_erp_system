@@ -69,12 +69,16 @@ class PurchaseInvoiceForm
                             ->label('خصم على الفاتورة')
                             ->numeric()
                             ->default(0)
+                            ->minValue(0)
+                            ->dehydrateStateUsing(fn ($state): float => (float) ($state ?: 0))
                             ->prefix('ج.م'),
 
                         TextInput::make('additional_cost')
                             ->label('مصروفات إضافية')
                             ->numeric()
                             ->default(0)
+                            ->minValue(0)
+                            ->dehydrateStateUsing(fn ($state): float => (float) ($state ?: 0))
                             ->prefix('ج.م'),
 
                         Textarea::make('notes')

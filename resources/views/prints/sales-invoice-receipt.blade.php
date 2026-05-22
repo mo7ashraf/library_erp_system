@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>فاتورة مبيعات - {{ $invoice->invoice_number }}</title>
     <style>
+        <x-erp.local-cairo-font />
         @page {
             size: A4 portrait;
             margin: 12mm;

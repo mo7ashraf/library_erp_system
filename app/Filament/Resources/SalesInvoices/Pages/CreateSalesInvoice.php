@@ -10,10 +10,59 @@ use App\Models\WarehouseItemBalance;
 use App\Services\Inventory\StockService;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class CreateSalesInvoice extends CreateRecord
 {
     protected static string $resource = SalesInvoiceResource::class;
+
+    protected function beforeCreate(): void
+    {
+        $warehouseId = (int) ($this->data['warehouse_id'] ?? 0);
+        $lines = $this->data['items'] ?? [];
+
+        foreach ($lines as $line) {
+            $itemId = (int) ($line['item_id'] ?? 0);
+            $quantity = (float) ($line['quantity'] ?? 0);
+            $unitPrice = (float) ($line['unit_price'] ?? 0);
+
+            if ($itemId <= 0) {
+                throw ValidationException::withMessages([
+                    'data.items' => 'يجب اختيار الصنف.',
+                ]);
+            }
+
+            if ($quantity <= 0) {
+                throw ValidationException::withMessages([
+                    'data.items' => 'كمية البيع يجب أن تكون أكبر من صفر.',
+                ]);
+            }
+
+            if ($unitPrice <= 0) {
+                throw ValidationException::withMessages([
+                    'data.items' => 'لا يمكن إنشاء فاتورة بيع بسعر صفر. راجع سعر الصنف.',
+                ]);
+            }
+
+            $availableQuantity = (float) WarehouseItemBalance::query()
+                ->where('warehouse_id', $warehouseId)
+                ->where('item_id', $itemId)
+                ->value('quantity');
+
+            if ($availableQuantity <= 0) {
+                throw ValidationException::withMessages([
+                    'data.items' => 'هذا الصنف غير متاح في المخزن المحدد.',
+                ]);
+            }
+
+            if ($quantity > $availableQuantity) {
+                throw ValidationException::withMessages([
+                    'data.items' => 'كمية البيع لا يمكن أن تتجاوز المتاح في المخزن. المتاح حاليًا: '
+                        . number_format($availableQuantity, 3),
+                ]);
+            }
+        }
+    }
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
