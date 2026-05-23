@@ -81,14 +81,6 @@ Route::middleware(['auth'])
             
         Route::get('/posted-documents-report', [PostedDocumentsPrintController::class, 'show'])
             ->name('posted-documents-report');
-
-        Route::get('/admin', function () {
-            if (auth()->check() && auth()->user()?->hasRole('employee')) {
-                return redirect('/admin/sales-desk');
-            }
-
-            return redirect('/admin/dashboard');
-        })->middleware('auth');
     });
 
 Route::get('/', function () {
