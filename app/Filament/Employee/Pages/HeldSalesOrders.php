@@ -5,7 +5,6 @@ namespace App\Filament\Employee\Pages;
 use BackedEnum;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Illuminate\Http\RedirectResponse;
 use UnitEnum;
 
 class HeldSalesOrders extends Page
@@ -40,11 +39,11 @@ class HeldSalesOrders extends Page
         $this->heldOrders = array_values(session()->get($this->heldOrdersSessionKey(), []));
     }
 
-    public function resume(string $id): RedirectResponse
+    public function resume(string $id): void
     {
         session()->put($this->resumeHeldOrderSessionKey(), $id);
 
-        return redirect('/employee/sales-desk');
+        $this->redirect('/employee/sales-desk');
     }
 
     public function delete(string $id): void
