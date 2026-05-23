@@ -53,6 +53,10 @@ class SalesDesk extends Page
 
     public array $lines = [];
 
+    public ?int $lastInvoiceId = null;
+
+    public ?string $lastInvoiceNumber = null;
+
     public static function getNavigationLabel(): string
     {
         return 'نقطة البيع';
@@ -256,6 +260,9 @@ class SalesDesk extends Page
             if ($paidAmount > 0) {
                 $this->createReceiptVoucherForSale($invoice, $paidAmount);
             }
+
+            $this->lastInvoiceId = $invoice->id;
+            $this->lastInvoiceNumber = $invoice->invoice_number;
 
             Notification::make()
                 ->title('تم إنشاء فاتورة البيع بنجاح')

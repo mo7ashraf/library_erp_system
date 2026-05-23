@@ -78,9 +78,21 @@
                     </div>
                 </div>
 
-                <button type="button" class="erp-report-btn erp-report-btn-primary" wire:click="submitSale">
-                    إنهاء البيع
-                </button>
+                <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                    @if($lastInvoiceId)
+                        <a
+                            href="{{ route('admin.prints.sales-invoices.receipt', $lastInvoiceId) }}"
+                            target="_blank"
+                            class="erp-report-btn erp-report-btn-secondary"
+                        >
+                            طباعة آخر فاتورة {{ $lastInvoiceNumber }}
+                        </a>
+                    @endif
+
+                    <button type="button" class="erp-report-btn erp-report-btn-primary" wire:click="submitSale">
+                        إنهاء البيع
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -245,6 +257,17 @@
                         <button type="button" class="erp-report-btn erp-report-btn-primary" style="width: 100%; margin-top: 16px;" wire:click="submitSale">
                             إنهاء البيع
                         </button>
+                        
+                        @if($lastInvoiceId)
+                            <a
+                                href="{{ route('admin.prints.sales-invoices.receipt', $lastInvoiceId) }}"
+                                target="_blank"
+                                class="erp-report-btn erp-report-btn-secondary"
+                                style="width: 100%; margin-top: 10px; text-align: center;"
+                            >
+                                طباعة آخر فاتورة {{ $lastInvoiceNumber }}
+                            </a>
+                        @endif
                     </div>
                 </div>
             </div>

@@ -29,6 +29,15 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->homeUrl(function (): string {
+                $user = auth()->user();
+
+                if ($user?->hasRole('employee')) {
+                    return '/admin/sales-desk';
+                }
+
+                return '/admin';
+            })
             ->brandName('نظام إدارة المكتبة')
             ->font('Cairo')
             ->colors([
