@@ -92,6 +92,9 @@
                     <button type="button" class="erp-report-btn erp-report-btn-primary" wire:click="submitSale">
                         إنهاء البيع
                     </button>
+                    <a href="/employee/employee-sales-history" class="erp-report-btn erp-report-btn-secondary">
+                        مبيعاتي
+                    </a>
                 </div>
             </div>
         </div>
