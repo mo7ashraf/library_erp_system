@@ -15,6 +15,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use App\Models\Cashbox;
 
 class SalesInvoiceForm
 {
@@ -161,6 +162,33 @@ class SalesInvoiceForm
                             ])
                             ->default(SalesInvoice::PAYMENT_CASH)
                             ->required(),
+
+                        Select::make('cashbox_id')
+                            ->label('الخزينة')
+                            ->options(fn (): array => Cashbox::query()
+                                ->where('is_active', true)
+                                ->orderBy('name')
+                                ->pluck('name', 'id')
+                                ->toArray())
+                            ->searchable()
+                            ->preload()
+                            ->live()
+                            ->required(fn (Get $get): bool => $get('payment_type') !== SalesInvoice::PAYMENT_CREDIT)
+                            ->visible(fn (Get $get): bool => $get('payment_type') !== SalesInvoice::PAYMENT_CREDIT)
+                            ->dehydrated(fn (Get $get): bool => $get('payment_type') !== SalesInvoice::PAYMENT_CREDIT)
+                            ->helperText('تستخدم لإنشاء سند قبض تلقائي عند الدفع الكامل أو الجزئي.'),
+
+                        TextInput::make('paid_amount')
+                            ->label('المبلغ المدفوع')
+                            ->numeric()
+                            ->default(0)
+                            ->minValue(0)
+                            ->visible(fn (Get $get): bool => $get('payment_type') === SalesInvoice::PAYMENT_PARTIAL)
+                            ->required(fn (Get $get): bool => $get('payment_type') === SalesInvoice::PAYMENT_PARTIAL)
+                            ->dehydrated(fn (Get $get): bool => $get('payment_type') === SalesInvoice::PAYMENT_PARTIAL)
+                            ->dehydrateStateUsing(fn ($state): float => (float) ($state ?: 0))
+                            ->prefix('ج.م')
+                            ->helperText('في الدفع الجزئي يجب أن يكون المبلغ أكبر من صفر وأقل من إجمالي الفاتورة.'),
 
                         Select::make('price_type')
                             ->label('نوع السعر')
