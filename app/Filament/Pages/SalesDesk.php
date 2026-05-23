@@ -33,6 +33,16 @@ class SalesDesk extends Page
 
     public ?int $customerId = null;
 
+    public ?string $customerPhone = null;
+
+    public ?string $customerName = null;
+    
+    public ?string $newCustomerName = null;
+    
+    public ?string $newCustomerPhone = null;
+    
+    public ?string $heldOrderName = null;
+
     public ?int $warehouseId = null;
 
     public ?int $cashboxId = null;
@@ -46,6 +56,10 @@ class SalesDesk extends Page
     public ?string $notes = null;
 
     public array $customers = [];
+
+    public ?string $customerSearch = null;
+
+    public array $heldOrders = [];
 
     public array $warehouses = [];
 
@@ -71,11 +85,8 @@ class SalesDesk extends Page
 
     public function mount(): void
     {
-        $this->customers = Customer::query()
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->pluck('name', 'id')
-            ->toArray();
+        $this->reloadCustomers();
+        $this->reloadHeldOrders();
 
         $this->warehouses = Warehouse::query()
             ->orderBy('name')
@@ -89,16 +100,21 @@ class SalesDesk extends Page
             ->toArray();
 
         $this->customerId = array_key_first($this->customers) ?: null;
+
+        $this->syncSelectedCustomerFields();
         $this->warehouseId = array_key_first($this->warehouses) ?: null;
         $this->cashboxId = array_key_first($this->cashboxes) ?: null;
 
         $this->priceType = $this->priceTypeForCustomer($this->customerId);
         $this->reloadAvailableItems();
         $this->addLine();
+        $this->resumeHeldOrderIfRequested();
     }
 
     public function updatedCustomerId(): void
     {
+        $this->syncSelectedCustomerFields();
+
         $this->priceType = $this->priceTypeForCustomer($this->customerId);
 
         foreach (array_keys($this->lines) as $index) {
@@ -189,6 +205,8 @@ class SalesDesk extends Page
 
     public function submitSale(): void
     {
+        $this->resolveCustomerBeforeSubmit();
+
         $this->validateBeforeSubmit();
 
         DB::transaction(function (): void {
@@ -325,6 +343,66 @@ class SalesDesk extends Page
             'status' => ReceiptVoucher::STATUS_POSTED,
             'posted_at' => now(),
         ]);
+    }
+
+    private function resolveCustomerBeforeSubmit(): void
+    {
+        $phone = trim((string) $this->customerPhone);
+        $name = trim((string) $this->customerName);
+
+        if ($phone !== '') {
+            $existingCustomer = $this->findCustomerByPhone($phone);
+
+            if ($existingCustomer) {
+                $this->customerId = $existingCustomer->id;
+                $this->customerName = $existingCustomer->name;
+                $this->customerPhone = $existingCustomer->mobile ?: $existingCustomer->phone;
+                $this->reloadCustomers();
+
+                return;
+            }
+
+            if ($name === '') {
+                $this->failWith('رقم الموبايل غير مسجل. أدخل اسم العميل لإنشائه تلقائيًا.');
+            }
+
+            $warehouse = $this->warehouseId ? Warehouse::find($this->warehouseId) : null;
+
+            $customer = Customer::create([
+                'branch_id' => $warehouse?->branch_id,
+                'code' => 'CUST-' . now()->format('YmdHis') . '-' . random_int(100, 999),
+                'name' => $name,
+                'type' => 'student',
+                'phone' => $phone,
+                'mobile' => $phone,
+                'opening_balance' => 0,
+                'balance_type' => 'debit',
+                'discount_percent' => 0,
+                'sales_at_purchase_price' => false,
+                'is_active' => true,
+                'notes' => 'تمت الإضافة تلقائيًا من نقطة البيع عند إنشاء الفاتورة',
+            ]);
+
+            $this->customerId = $customer->id;
+            $this->customerName = $customer->name;
+            $this->customerPhone = $customer->mobile ?: $customer->phone;
+
+            $this->reloadCustomers();
+
+            Notification::make()
+                ->title('تم إضافة العميل تلقائيًا')
+                ->body($customer->name)
+                ->success()
+                ->send();
+
+            return;
+        }
+
+        if ($this->customerId) {
+            return;
+        }
+
+        $this->failWith('أدخل رقم موبايل العميل أو اختر عميلًا موجودًا.');
     }
 
     private function validateBeforeSubmit(): void
@@ -602,5 +680,321 @@ class SalesDesk extends Page
         }
 
         return 'تقرير مبيعات المستخدمين';
+    }
+
+    public function updatedCustomerSearch(): void
+    {
+        $this->reloadCustomers();
+    }
+
+    public function createQuickCustomer(): void
+    {
+        $name = trim((string) $this->newCustomerName);
+        $phone = trim((string) $this->newCustomerPhone);
+
+        if ($name === '') {
+            $this->failWith('أدخل اسم العميل.');
+        }
+
+        if ($phone === '') {
+            $this->failWith('أدخل رقم هاتف العميل.');
+        }
+
+        $existingCustomer = Customer::query()
+            ->where('mobile', $phone)
+            ->orWhere('phone', $phone)
+            ->first();
+
+        if ($existingCustomer) {
+            $this->customerId = $existingCustomer->id;
+            $this->newCustomerName = null;
+            $this->newCustomerPhone = null;
+            $this->reloadCustomers();
+
+            Notification::make()
+                ->title('تم اختيار العميل الموجود بالفعل')
+                ->body($existingCustomer->name)
+                ->success()
+                ->send();
+
+            return;
+        }
+
+        $warehouse = $this->warehouseId ? Warehouse::find($this->warehouseId) : null;
+
+        $customer = Customer::create([
+            'branch_id' => $warehouse?->branch_id,
+            'code' => 'CUST-' . now()->format('YmdHis') . '-' . random_int(100, 999),
+            'name' => $name,
+            'type' => 'student',
+            'phone' => $phone,
+            'mobile' => $phone,
+            'opening_balance' => 0,
+            'balance_type' => 'debit',
+            'discount_percent' => 0,
+            'sales_at_purchase_price' => false,
+            'is_active' => true,
+            'notes' => 'تمت الإضافة من نقطة البيع',
+        ]);
+
+        $this->customerId = $customer->id;
+        $this->customerSearch = $phone;
+        $this->newCustomerName = null;
+        $this->newCustomerPhone = null;
+
+        $this->reloadCustomers();
+        $this->priceType = $this->priceTypeForCustomer($this->customerId);
+
+        Notification::make()
+            ->title('تم إضافة العميل واختياره')
+            ->body($customer->name)
+            ->success()
+            ->send();
+    }
+
+    public function holdCurrentOrder(): void
+    {
+        if (count($this->validLines()) === 0) {
+            $this->failWith('لا يوجد أصناف في الطلب لتعليقه.');
+        }
+
+        $orders = session()->get($this->heldOrdersSessionKey(), []);
+
+        $id = 'HOLD-' . now()->format('YmdHis') . '-' . random_int(100, 999);
+
+        $customerName = trim((string) $this->customerName)
+            ?: ($this->customerId ? ($this->customers[$this->customerId] ?? 'عميل غير محدد') : 'عميل غير مسجل');
+
+        $customerPhone = trim((string) $this->customerPhone);
+
+        $orderName = $customerName;
+
+        if ($customerPhone !== '') {
+            $orderName .= ' - ' . $customerPhone;
+        }
+
+        $orderName .= ' - ' . now()->format('H:i');
+
+        $orders[$id] = [
+            'id' => $id,
+            'name' => $orderName,
+            'customer_id' => $this->customerId,
+            'customer_name' => $customerName,
+            'customer_phone' => $customerPhone,
+            'warehouse_id' => $this->warehouseId,
+            'cashbox_id' => $this->cashboxId,
+            'payment_mode' => $this->paymentMode,
+            'price_type' => $this->priceType,
+            'paid_amount' => $this->paidAmount,
+            'notes' => $this->notes,
+            'lines' => $this->lines,
+            'created_at' => now()->format('Y-m-d H:i'),
+        ];
+
+        session()->put($this->heldOrdersSessionKey(), $orders);
+
+        $this->reloadHeldOrders();
+        $this->resetCurrentOrder();
+
+        Notification::make()
+            ->title('تم تعليق الطلب')
+            ->body('يمكنك استرجاعه من قائمة الطلبات المعلقة.')
+            ->success()
+            ->send();
+    }
+    public function loadHeldOrder(string $id): void
+    {
+        $orders = session()->get($this->heldOrdersSessionKey(), []);
+
+        if (! isset($orders[$id])) {
+            $this->reloadHeldOrders();
+
+            $this->failWith('الطلب المعلق غير موجود.');
+        }
+
+        $order = $orders[$id];
+
+        $this->customerId = $order['customer_id'] ?? null;
+        $this->customerName = $order['customer_name'] ?? null;
+        $this->customerPhone = $order['customer_phone'] ?? null;
+        $this->warehouseId = $order['warehouse_id'] ?? $this->warehouseId;
+        $this->cashboxId = $order['cashbox_id'] ?? $this->cashboxId;
+        $this->paymentMode = $order['payment_mode'] ?? SalesInvoice::PAYMENT_CASH;
+        $this->priceType = $order['price_type'] ?? SalesInvoice::PRICE_STUDENT;
+        $this->paidAmount = (float) ($order['paid_amount'] ?? 0);
+        $this->notes = $order['notes'] ?? null;
+        $this->lines = $order['lines'] ?? [];
+
+        unset($orders[$id]);
+
+        session()->put($this->heldOrdersSessionKey(), $orders);
+
+        $this->reloadCustomers();
+        $this->reloadAvailableItems();
+        $this->reloadHeldOrders();
+
+        Notification::make()
+            ->title('تم استرجاع الطلب المعلق')
+            ->success()
+            ->send();
+    }
+
+    public function deleteHeldOrder(string $id): void
+    {
+        $orders = session()->get($this->heldOrdersSessionKey(), []);
+
+        unset($orders[$id]);
+
+        session()->put($this->heldOrdersSessionKey(), $orders);
+
+        $this->reloadHeldOrders();
+
+        Notification::make()
+            ->title('تم حذف الطلب المعلق')
+            ->success()
+            ->send();
+    }
+    
+    private function resetCurrentOrder(): void
+    {
+        $this->customerId = null;
+        $this->customerPhone = null;
+        $this->customerName = null;
+        $this->paymentMode = SalesInvoice::PAYMENT_CASH;
+        $this->paidAmount = 0;
+        $this->notes = null;
+        $this->reloadCustomers();
+        $this->lines = [];
+        $this->addLine();
+    }
+
+    private function reloadHeldOrders(): void
+    {
+        $this->heldOrders = array_values(session()->get($this->heldOrdersSessionKey(), []));
+    }
+
+    private function heldOrdersSessionKey(): string
+    {
+        return 'sales_desk_held_orders_user_' . auth()->id();
+    }
+
+    public function updatedCustomerPhone(): void
+    {
+        $this->customerPhone = trim((string) $this->customerPhone);
+
+        if ($this->customerPhone === '') {
+            $this->customerId = null;
+            $this->customerName = null;
+            $this->reloadCustomers();
+
+            return;
+        }
+
+        $customer = $this->findCustomerByPhone($this->customerPhone);
+
+        if ($customer) {
+            $this->customerId = $customer->id;
+            $this->customerName = $customer->name;
+        } else {
+            $this->customerId = null;
+            $this->customerName = null;
+        }
+
+        $this->reloadCustomers();
+    }
+
+    public function updatedCustomerName(): void
+    {
+        $this->reloadCustomers();
+    }
+
+    private function findCustomerByPhone(string $phone): ?Customer
+    {
+        $phone = trim($phone);
+
+        if ($phone === '') {
+            return null;
+        }
+
+        return Customer::query()
+            ->where('mobile', $phone)
+            ->orWhere('phone', $phone)
+            ->first();
+    }
+
+    private function syncSelectedCustomerFields(): void
+    {
+        if (! $this->customerId) {
+            return;
+        }
+
+        $customer = Customer::find($this->customerId);
+
+        if (! $customer) {
+            return;
+        }
+
+        $this->customerName = $customer->name;
+        $this->customerPhone = $customer->mobile ?: $customer->phone;
+    }
+
+    private function reloadCustomers(): void
+    {
+        $phone = trim((string) $this->customerPhone);
+        $name = trim((string) $this->customerName);
+
+        $this->customers = Customer::query()
+            ->where('is_active', true)
+            ->when($phone !== '', function ($query) use ($phone): void {
+                $query->where(function ($subQuery) use ($phone): void {
+                    $subQuery
+                        ->where('phone', 'like', "%{$phone}%")
+                        ->orWhere('mobile', 'like', "%{$phone}%");
+                });
+            })
+            ->when($name !== '', function ($query) use ($name): void {
+                $query->where(function ($subQuery) use ($name): void {
+                    $subQuery
+                        ->where('name', 'like', "%{$name}%")
+                        ->orWhere('code', 'like', "%{$name}%");
+                });
+            })
+            ->orderBy('name')
+            ->limit(50)
+            ->pluck('name', 'id')
+            ->toArray();
+
+        if ($this->customerId && ! array_key_exists($this->customerId, $this->customers)) {
+            $selectedCustomer = Customer::find($this->customerId);
+
+            if ($selectedCustomer) {
+                $this->customers = [
+                    $selectedCustomer->id => $selectedCustomer->name,
+                ] + $this->customers;
+            }
+        }
+    }
+    private function resumeHeldOrderIfRequested(): void
+    {
+        $id = session()->pull($this->resumeHeldOrderSessionKey());
+
+        if (! $id) {
+            return;
+        }
+
+        $orders = session()->get($this->heldOrdersSessionKey(), []);
+
+        if (! isset($orders[$id])) {
+            $this->reloadHeldOrders();
+
+            return;
+        }
+
+        $this->loadHeldOrder((string) $id);
+    }
+
+    private function resumeHeldOrderSessionKey(): string
+    {
+        return 'sales_desk_resume_held_order_user_' . auth()->id();
     }
 }

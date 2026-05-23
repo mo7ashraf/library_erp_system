@@ -18,6 +18,7 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use App\Filament\Employee\Pages\EmployeeSalesHistory;
+use App\Filament\Employee\Pages\HeldSalesOrders;
 
 class EmployeePanelProvider extends PanelProvider
 {
@@ -36,6 +37,7 @@ class EmployeePanelProvider extends PanelProvider
             ->pages([
                 SalesDesk::class,
                 EmployeeSalesHistory::class,
+                HeldSalesOrders::class,
             ])
             ->widgets([
                 AccountWidget::class,
