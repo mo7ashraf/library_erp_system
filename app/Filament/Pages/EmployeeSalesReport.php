@@ -38,12 +38,12 @@ class EmployeeSalesReport extends Page
 
     public static function getNavigationLabel(): string
     {
-        return 'مبيعات الموظفين';
+        return 'مبيعات المستخدمين';
     }
 
     public function getTitle(): string
     {
-        return 'تقرير مبيعات الموظفين';
+        return 'تقرير مبيعات المستخدمين';
     }
 
     public static function canAccess(): bool

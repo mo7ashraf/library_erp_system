@@ -92,8 +92,8 @@
                     <button type="button" class="erp-report-btn erp-report-btn-primary" wire:click="submitSale">
                         إنهاء البيع
                     </button>
-                    <a href="/employee/employee-sales-history" class="erp-report-btn erp-report-btn-secondary">
-                        مبيعاتي
+                    <a href="{{ $this->salesHistoryUrl() }}" class="erp-report-btn erp-report-btn-secondary">
+                        {{ $this->salesHistoryLabel() }}
                     </a>
                 </div>
             </div>
@@ -242,13 +242,23 @@
 
                         <div style="margin-top: 18px;">
                             <div class="sales-desk-side-line">
-                                <span>الإجمالي</span>
+                                <span>رصيد العميل الحالي</span>
+                                <span>{{ $this->currentCustomerBalanceLabel() }}</span>
+                            </div>
+
+                            <div class="sales-desk-side-line">
+                                <span>إجمالي الفاتورة</span>
                                 <span>{{ $money($this->grandTotal()) }}</span>
                             </div>
 
                             <div class="sales-desk-side-line">
-                                <span>المتبقي على العميل</span>
+                                <span>المتبقي من الفاتورة</span>
                                 <span>{{ $money($this->remainingAmount()) }}</span>
+                            </div>
+
+                            <div class="sales-desk-side-line">
+                                <span>رصيد العميل بعد البيع</span>
+                                <span>{{ $this->expectedCustomerBalanceAfterSaleLabel() }}</span>
                             </div>
                         </div>
 

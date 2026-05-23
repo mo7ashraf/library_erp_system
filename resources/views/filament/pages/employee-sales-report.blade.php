@@ -9,7 +9,7 @@
         <div class="erp-report-card">
             <div class="erp-report-header">
                 <div>
-                    <h2 class="erp-report-title">تقرير مبيعات الموظفين</h2>
+                    <h2 class="erp-report-title">تقرير مبيعات المستخدمين</h2>
                     <div class="erp-report-subtitle">
                         متابعة مبيعات كل موظف خلال فترة محددة مع إمكانية مراجعة الفواتير وطباعتها.
                     </div>
@@ -69,7 +69,7 @@
 
         <div class="erp-report-card">
             <div class="erp-report-table-header">
-                <h3 class="erp-report-table-title">ملخص المبيعات حسب الموظف</h3>
+                <h3 class="erp-report-table-title">ملخص المبيعات حسب المستخدم</h3>
             </div>
 
             <div class="erp-report-table-wrapper">
@@ -77,7 +77,7 @@
                     <thead>
                     <tr>
                         <th style="width: 45px;">م</th>
-                        <th>الموظف</th>
+                        <th>المستخدم</th>
                         <th>عدد الفواتير</th>
                         <th>إجمالي المبيعات</th>
                         <th>متوسط الفاتورة</th>
@@ -122,7 +122,7 @@
                         <th style="width: 45px;">م</th>
                         <th>التاريخ</th>
                         <th>رقم الفاتورة</th>
-                        <th>الموظف</th>
+                        <th>المستخدم</th>
                         <th>العميل</th>
                         <th>المخزن</th>
                         <th>طريقة الدفع</th>

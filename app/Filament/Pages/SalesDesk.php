@@ -19,6 +19,7 @@ use Filament\Pages\Page;
 use Illuminate\Support\Facades\DB;
 use UnitEnum;
 use Illuminate\Validation\ValidationException;
+use App\Services\Finance\PartyLedgerService;
 
 class SalesDesk extends Page
 {
@@ -534,5 +535,72 @@ class SalesDesk extends Page
         };
 
         return max(0, $this->grandTotal() - $paid);
+    }
+    public function currentCustomerBalanceLabel(): string
+    {
+        if (! $this->customerId) {
+            return '0.00';
+        }
+
+        try {
+            $ledger = app(PartyLedgerService::class)->customerLedger($this->customerId);
+
+            return $ledger['closing_balance_label'] ?? '0.00';
+        } catch (\Throwable) {
+            return 'تعذر تحميل الرصيد';
+        }
+    }
+
+    public function currentCustomerBalanceValue(): float
+    {
+        if (! $this->customerId) {
+            return 0;
+        }
+
+        try {
+            $ledger = app(PartyLedgerService::class)->customerLedger($this->customerId);
+
+            return (float) ($ledger['closing_balance'] ?? 0);
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
+    public function expectedCustomerBalanceAfterSale(): float
+    {
+        return $this->currentCustomerBalanceValue() + $this->remainingAmount();
+    }
+
+    public function expectedCustomerBalanceAfterSaleLabel(): string
+    {
+        $balance = $this->expectedCustomerBalanceAfterSale();
+
+        if ($balance > 0) {
+            return number_format($balance, 2) . ' مدين';
+        }
+
+        if ($balance < 0) {
+            return number_format(abs($balance), 2) . ' دائن';
+        }
+
+        return number_format(0, 2);
+    }
+
+    public function salesHistoryUrl(): string
+    {
+        if (request()->is('employee', 'employee/*')) {
+            return '/employee/employee-sales-history';
+        }
+
+        return '/admin/employee-sales-report';
+    }
+
+    public function salesHistoryLabel(): string
+    {
+        if (request()->is('employee', 'employee/*')) {
+            return 'مبيعاتي';
+        }
+
+        return 'تقرير مبيعات المستخدمين';
     }
 }
