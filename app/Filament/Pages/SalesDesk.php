@@ -18,6 +18,7 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\DB;
 use UnitEnum;
+use Illuminate\Validation\ValidationException;
 
 class SalesDesk extends Page
 {
@@ -384,7 +385,9 @@ class SalesDesk extends Page
             ->danger()
             ->send();
 
-        throw new \RuntimeException($message);
+        throw ValidationException::withMessages([
+            'sales_desk' => $message,
+        ]);
     }
 
     private function resetDesk(): void
