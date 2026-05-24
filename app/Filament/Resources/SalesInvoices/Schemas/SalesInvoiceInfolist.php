@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\SalesInvoices\Schemas;
 
+use App\Models\ReceiptVoucher;
 use App\Models\SalesInvoice;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
@@ -9,6 +10,56 @@ use Filament\Schemas\Schema;
 
 class SalesInvoiceInfolist
 {
+    private static function paidAmount(SalesInvoice $record): float
+    {
+        return (float) ReceiptVoucher::query()
+            ->where('party_type', ReceiptVoucher::PARTY_CUSTOMER)
+            ->where('customer_id', $record->customer_id)
+            ->where('status', ReceiptVoucher::STATUS_POSTED)
+            ->where('description', 'like', '%' . $record->invoice_number . '%')
+            ->sum('amount');
+    }
+
+    private static function remainingAmount(SalesInvoice $record): float
+    {
+        return max(0, (float) $record->grand_total - self::paidAmount($record));
+    }
+
+    private static function paymentStatus(SalesInvoice $record): string
+    {
+        $paid = self::paidAmount($record);
+        $total = (float) $record->grand_total;
+
+        if ($total <= 0) {
+            return '-';
+        }
+
+        if ($paid <= 0) {
+            return 'غير محصلة';
+        }
+
+        if ($paid >= $total) {
+            return 'محصلة بالكامل';
+        }
+
+        return 'محصلة جزئيًا';
+    }
+
+    private static function receiptVoucherNumbers(SalesInvoice $record): string
+    {
+        $numbers = ReceiptVoucher::query()
+            ->where('party_type', ReceiptVoucher::PARTY_CUSTOMER)
+            ->where('customer_id', $record->customer_id)
+            ->where('status', ReceiptVoucher::STATUS_POSTED)
+            ->where('description', 'like', '%' . $record->invoice_number . '%')
+            ->orderBy('voucher_date')
+            ->pluck('voucher_number')
+            ->filter()
+            ->implode('، ');
+
+        return $numbers !== '' ? $numbers : '-';
+    }
+
     public static function configure(Schema $schema): Schema
     {
         return $schema
@@ -44,6 +95,25 @@ class SalesInvoiceInfolist
                         SalesInvoice::PAYMENT_PARTIAL => 'جزء نقدي / آجل',
                         default => '-',
                     }),
+
+                TextEntry::make('payment_status')
+                    ->label('حالة التحصيل')
+                    ->state(fn (SalesInvoice $record): string => self::paymentStatus($record)),
+
+                TextEntry::make('paid_amount')
+                    ->label('المبلغ المحصل')
+                    ->state(fn (SalesInvoice $record): float => self::paidAmount($record))
+                    ->money('EGP'),
+
+                TextEntry::make('remaining_amount')
+                    ->label('المبلغ المتبقي')
+                    ->state(fn (SalesInvoice $record): float => self::remainingAmount($record))
+                    ->money('EGP'),
+
+                TextEntry::make('receipt_vouchers')
+                    ->label('سندات القبض')
+                    ->state(fn (SalesInvoice $record): string => self::receiptVoucherNumbers($record))
+                    ->columnSpanFull(),
 
                 TextEntry::make('price_type')
                     ->label('نوع السعر')
