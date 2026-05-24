@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\PurchaseInvoices\Schemas;
 
+use App\Models\Cashbox;
 use App\Models\PurchaseInvoice;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
@@ -9,6 +10,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 
 class PurchaseInvoiceForm
@@ -63,7 +65,35 @@ class PurchaseInvoiceForm
                                 PurchaseInvoice::PAYMENT_PARTIAL => 'جزء نقدي / آجل',
                             ])
                             ->default(PurchaseInvoice::PAYMENT_CASH)
+                            ->live()
                             ->required(),
+
+                        Select::make('cashbox_id')
+                            ->label('الخزينة')
+                            ->options(fn (): array => Cashbox::query()
+                                ->where('is_active', true)
+                                ->orderBy('name')
+                                ->pluck('name', 'id')
+                                ->toArray())
+                            ->searchable()
+                            ->preload()
+                            ->live()
+                            ->required(fn (Get $get): bool => $get('payment_type') !== PurchaseInvoice::PAYMENT_CREDIT)
+                            ->visible(fn (Get $get): bool => $get('payment_type') !== PurchaseInvoice::PAYMENT_CREDIT)
+                            ->dehydrated(fn (Get $get): bool => $get('payment_type') !== PurchaseInvoice::PAYMENT_CREDIT)
+                            ->helperText('تستخدم لإنشاء سند صرف تلقائي عند الدفع الكامل أو الجزئي.'),
+
+                        TextInput::make('paid_amount')
+                            ->label('المبلغ المدفوع')
+                            ->numeric()
+                            ->default(0)
+                            ->minValue(0)
+                            ->visible(fn (Get $get): bool => $get('payment_type') === PurchaseInvoice::PAYMENT_PARTIAL)
+                            ->required(fn (Get $get): bool => $get('payment_type') === PurchaseInvoice::PAYMENT_PARTIAL)
+                            ->dehydrated(fn (Get $get): bool => $get('payment_type') === PurchaseInvoice::PAYMENT_PARTIAL)
+                            ->dehydrateStateUsing(fn ($state): float => (float) ($state ?: 0))
+                            ->prefix('ج.م')
+                            ->helperText('في الدفع الجزئي يجب أن يكون المبلغ أكبر من صفر وأقل من إجمالي الفاتورة.'),
 
                         TextInput::make('discount_amount')
                             ->label('خصم على الفاتورة')
@@ -112,19 +142,24 @@ class PurchaseInvoiceForm
                                     ->label('الكمية')
                                     ->numeric()
                                     ->required()
-                                    ->minValue(0.001),
+                                    ->minValue(1),
 
                                 TextInput::make('unit_price')
                                     ->label('سعر الشراء')
                                     ->numeric()
                                     ->required()
-                                    ->default(0)
+                                    ->minValue(0.01)
+                                    ->validationMessages([
+                                        'min' => 'سعر الشراء يجب أن يكون أكبر من صفر.',
+                                    ])
                                     ->prefix('ج.م'),
 
                                 TextInput::make('discount_percent')
                                     ->label('خصم %')
                                     ->numeric()
                                     ->default(0)
+                                    ->minValue(0)
+                                    ->dehydrateStateUsing(fn ($state): float => (float) ($state ?: 0))
                                     ->suffix('%'),
 
                                 TextInput::make('notes')
