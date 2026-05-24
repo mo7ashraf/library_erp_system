@@ -8,6 +8,7 @@ use App\Filament\Resources\StockTransfers\Pages\ViewStockTransfer;
 use App\Filament\Resources\StockTransfers\Schemas\StockTransferForm;
 use App\Filament\Resources\StockTransfers\Schemas\StockTransferInfolist;
 use App\Filament\Resources\StockTransfers\Tables\StockTransfersTable;
+use App\Filament\Resources\Concerns\ProtectsPostedRecords;
 use App\Models\StockTransfer;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -17,6 +18,7 @@ use Filament\Tables\Table;
 
 class StockTransferResource extends Resource
 {
+    use ProtectsPostedRecords;
     protected static ?string $model = StockTransfer::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowsRightLeft;

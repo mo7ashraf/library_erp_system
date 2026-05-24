@@ -8,6 +8,7 @@ use App\Filament\Resources\StockCountDocuments\Pages\ViewStockCountDocument;
 use App\Filament\Resources\StockCountDocuments\Schemas\StockCountDocumentForm;
 use App\Filament\Resources\StockCountDocuments\Schemas\StockCountDocumentInfolist;
 use App\Filament\Resources\StockCountDocuments\Tables\StockCountDocumentsTable;
+use App\Filament\Resources\Concerns\ProtectsPostedRecords;
 use App\Models\StockCountDocument;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -17,6 +18,7 @@ use Filament\Tables\Table;
 
 class StockCountDocumentResource extends Resource
 {
+    use ProtectsPostedRecords;
     protected static ?string $model = StockCountDocument::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentCheck;

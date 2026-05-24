@@ -8,6 +8,7 @@ use App\Filament\Resources\PaymentVouchers\Pages\ViewPaymentVoucher;
 use App\Filament\Resources\PaymentVouchers\Schemas\PaymentVoucherForm;
 use App\Filament\Resources\PaymentVouchers\Schemas\PaymentVoucherInfolist;
 use App\Filament\Resources\PaymentVouchers\Tables\PaymentVouchersTable;
+use App\Filament\Resources\Concerns\ProtectsPostedRecords;
 use App\Models\PaymentVoucher;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -17,6 +18,7 @@ use Filament\Tables\Table;
 
 class PaymentVoucherResource extends Resource
 {
+    use ProtectsPostedRecords;
     protected static ?string $model = PaymentVoucher::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowUpTray;

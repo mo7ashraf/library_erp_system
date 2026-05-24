@@ -8,6 +8,7 @@ use App\Filament\Resources\SalesReturns\Pages\ViewSalesReturn;
 use App\Filament\Resources\SalesReturns\Schemas\SalesReturnForm;
 use App\Filament\Resources\SalesReturns\Schemas\SalesReturnInfolist;
 use App\Filament\Resources\SalesReturns\Tables\SalesReturnsTable;
+use App\Filament\Resources\Concerns\ProtectsPostedRecords;
 use App\Models\SalesReturn;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -17,6 +18,7 @@ use Filament\Tables\Table;
 
 class SalesReturnResource extends Resource
 {
+    use ProtectsPostedRecords;
     protected static ?string $model = SalesReturn::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowUturnLeft;

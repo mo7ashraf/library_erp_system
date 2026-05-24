@@ -8,6 +8,7 @@ use App\Filament\Resources\PurchaseInvoices\Pages\ViewPurchaseInvoice;
 use App\Filament\Resources\PurchaseInvoices\Schemas\PurchaseInvoiceForm;
 use App\Filament\Resources\PurchaseInvoices\Schemas\PurchaseInvoiceInfolist;
 use App\Filament\Resources\PurchaseInvoices\Tables\PurchaseInvoicesTable;
+use App\Filament\Resources\Concerns\ProtectsPostedRecords;
 use App\Models\PurchaseInvoice;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -17,6 +18,8 @@ use Filament\Tables\Table;
 
 class PurchaseInvoiceResource extends Resource
 {
+    use ProtectsPostedRecords;
+
     protected static ?string $model = PurchaseInvoice::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShoppingBag;

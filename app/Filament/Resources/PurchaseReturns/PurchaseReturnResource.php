@@ -8,6 +8,7 @@ use App\Filament\Resources\PurchaseReturns\Pages\ViewPurchaseReturn;
 use App\Filament\Resources\PurchaseReturns\Schemas\PurchaseReturnForm;
 use App\Filament\Resources\PurchaseReturns\Schemas\PurchaseReturnInfolist;
 use App\Filament\Resources\PurchaseReturns\Tables\PurchaseReturnsTable;
+use App\Filament\Resources\Concerns\ProtectsPostedRecords;
 use App\Models\PurchaseReturn;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -17,6 +18,7 @@ use Filament\Tables\Table;
 
 class PurchaseReturnResource extends Resource
 {
+    use ProtectsPostedRecords;
     protected static ?string $model = PurchaseReturn::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowUturnRight;

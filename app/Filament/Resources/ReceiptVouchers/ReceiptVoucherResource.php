@@ -8,6 +8,7 @@ use App\Filament\Resources\ReceiptVouchers\Pages\ViewReceiptVoucher;
 use App\Filament\Resources\ReceiptVouchers\Schemas\ReceiptVoucherForm;
 use App\Filament\Resources\ReceiptVouchers\Schemas\ReceiptVoucherInfolist;
 use App\Filament\Resources\ReceiptVouchers\Tables\ReceiptVouchersTable;
+use App\Filament\Resources\Concerns\ProtectsPostedRecords;
 use App\Models\ReceiptVoucher;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -17,6 +18,7 @@ use Filament\Tables\Table;
 
 class ReceiptVoucherResource extends Resource
 {
+    use ProtectsPostedRecords;
     protected static ?string $model = ReceiptVoucher::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowDownTray;

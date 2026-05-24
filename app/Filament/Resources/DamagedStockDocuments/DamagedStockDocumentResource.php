@@ -8,6 +8,7 @@ use App\Filament\Resources\DamagedStockDocuments\Pages\ViewDamagedStockDocument;
 use App\Filament\Resources\DamagedStockDocuments\Schemas\DamagedStockDocumentForm;
 use App\Filament\Resources\DamagedStockDocuments\Schemas\DamagedStockDocumentInfolist;
 use App\Filament\Resources\DamagedStockDocuments\Tables\DamagedStockDocumentsTable;
+use App\Filament\Resources\Concerns\ProtectsPostedRecords;
 use App\Models\DamagedStockDocument;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -17,6 +18,7 @@ use Filament\Tables\Table;
 
 class DamagedStockDocumentResource extends Resource
 {
+    use ProtectsPostedRecords;
     protected static ?string $model = DamagedStockDocument::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTrash;
